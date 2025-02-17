@@ -20,8 +20,6 @@ yarn add hclcdp-web-sdk
 
 Here's an example of how to use the HCL CDP Web SDK - replace with endpoint and writeKey suitable for your environment.
 
-## Usage without React
-
 ```typescript
 "use client"
 import Link from "next/link"

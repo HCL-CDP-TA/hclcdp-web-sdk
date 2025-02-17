@@ -60,6 +60,16 @@ export class HclCdp {
         }
       }
 
+      const commonIds: Record<string, string> = {}
+
+      const cookiesToCheck = ["_ga", "_fbc", "_fbp", "mcmid"]
+      cookiesToCheck.forEach(cookieName => {
+        const cookieValue = getCookie(cookieName)
+        if (cookieValue) {
+          commonIds[cookieName] = cookieValue
+        }
+      })
+
       // Call the callback with the deviceId
       if (callback) callback(null, { deviceId: HclCdp.getDeviceId() || null, sessionId: HclCdp.getSessionId() || null })
     } catch (error) {
@@ -185,5 +195,14 @@ export class HclCdp {
       console.error("Error parsing UTM parameters:", e)
       return {}
     }
+  }
+
+  private static getCookie = (name: string): string => {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) {
+      return parts.pop()?.split(";").shift() ?? ""
+    }
+    return ""
   }
 }

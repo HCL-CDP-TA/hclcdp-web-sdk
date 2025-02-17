@@ -378,6 +378,14 @@ var HclCdp = class _HclCdp {
           console.warn("window.HclCdp is already defined. Skipping attachment.");
         }
       }
+      const commonIds = {};
+      const cookiesToCheck = ["_ga", "_fbc", "_fbp", "mcmid"];
+      cookiesToCheck.forEach((cookieName) => {
+        const cookieValue = getCookie(cookieName);
+        if (cookieValue) {
+          commonIds[cookieName] = cookieValue;
+        }
+      });
       if (callback) callback(null, { deviceId: _HclCdp.getDeviceId() || null, sessionId: _HclCdp.getSessionId() || null });
     } catch (error) {
       console.log("Error initializing HCL CDP SDK:", error);
@@ -474,6 +482,14 @@ var HclCdp = class _HclCdp {
       console.error("Error parsing UTM parameters:", e);
       return {};
     }
+  };
+  static getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(";").shift() ?? "";
+    }
+    return "";
   };
 };
 // Annotate the CommonJS export names for ESM import in node:

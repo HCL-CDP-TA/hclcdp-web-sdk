@@ -1,0 +1,34 @@
+{
+  "properties": {
+    "firstName": "Jill"
+  },
+  "type": "track",
+  "event": "jillsmith",
+  "id": "viz_679866e1ba4b9",
+  "userId": "jillsmith",
+  "originalTimestamp": 1739240548320,
+  "messageId": "c59c2946-f03d-4368-9ded-dc02dc9b5b0a",
+  "writeKey": "zpgimm1j76dntmdfvryq",
+  "otherIds": {
+    "_ga": "GA1.1.248022424.1738041058"
+  },
+  "context": {
+    "library": {
+      "name": "javascript"
+    },
+    "userAgent": {
+      "deviceType": "DESKTOP",
+      "osType": "Mac OS",
+      "osVersion": "Mac OS X 10",
+      "browser": "Chrome",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+    },
+    "page": {
+      "path": "/index.html",
+      "referrer": "https://hclcdp-insurance-6527.dev.hxcd.now.hclsoftware.cloud/life_term_insurance.html",
+      "title": "Insurance",
+      "url": "https://hclcdp-insurance-6527.dev.hxcd.now.hclsoftware.cloud/index.html"
+    }
+  },
+  "deviceType": "Desktop"
+}

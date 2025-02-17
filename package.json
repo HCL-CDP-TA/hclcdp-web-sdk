@@ -1,0 +1,30 @@
+{
+  "name": "hclcdp-web-sdk",
+  "version": "0.0.1",
+  "description": "HCL CDP Web SDK",
+  "keywords": [
+    "HCLCDP"
+  ],
+  "homepage": "https://github.com/simonpallisterhcl/hclcdp-web-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/simonpallisterhcl/hclcdp-web-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simonpallisterhcl/hclcdp-web-sdk.git"
+  },
+  "license": "MIT",
+  "author": "Simon Pallister",
+  "type": "module",
+  "main": "./dist/hclcdp-web.js",
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "ua-parser-js": "^2.0.2",
+    "uuid": "^11.0.5"
+  }
+}

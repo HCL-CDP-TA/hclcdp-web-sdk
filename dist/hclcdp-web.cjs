@@ -90,7 +90,8 @@ var CdpClient = class {
       }
     };
   };
-  page = async (pageName, sessionId, properties, otherIds) => {
+  page = async (pageName, sessionId, properties, utmParams, otherIds) => {
+    this.context.utm = utmParams;
     const payload = {
       type: "page",
       name: pageName,
@@ -402,7 +403,8 @@ var HclCdp = class _HclCdp {
         path: window.location.pathname,
         url: window.location.href,
         referrer: document.referrer,
-        title: document.title
+        title: document.title,
+        search: document.location.search
       },
       otherIds
     };
@@ -413,12 +415,14 @@ var HclCdp = class _HclCdp {
     }
     const pageProperties = {
       ...properties,
-      path: window.location.pathname,
-      url: window.location.href,
+      path: document.location.pathname,
+      url: document.location.href,
       referrer: document.referrer,
-      title: document.title
+      title: document.title,
+      search: document.location.search
     };
-    _HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), pageProperties, otherIds);
+    const utmParams = this.parseUtmParameters(document.location.pathname);
+    _HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), pageProperties, utmParams, otherIds);
   };
   static track = async (eventName, properties, otherIds) => {
     const payload = {
@@ -455,6 +459,20 @@ var HclCdp = class _HclCdp {
   static logout = async () => {
     if (this.config.enableUserLogoutLogging) {
       _HclCdp.instance.cdpClient?.logout(this.getSessionId());
+    }
+  };
+  static parseUtmParameters = (path) => {
+    try {
+      const utmRegex = /(?:\?|&)(utm_[^=]+)=(.*?)(?=&|$)/gi;
+      const utmParams = {};
+      let match;
+      while ((match = utmRegex.exec(document.URL)) !== null) {
+        utmParams[match[1]] = match[2];
+      }
+      return utmParams;
+    } catch (e) {
+      console.error("Error parsing UTM parameters:", e);
+      return {};
     }
   };
 };

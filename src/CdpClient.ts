@@ -52,8 +52,11 @@ export class CdpClient {
     pageName: string,
     sessionId: string,
     properties?: Record<string, any>,
+    utmParams?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
+    this.context.utm = utmParams
+
     const payload: EventPayload = {
       type: "page",
       name: pageName,

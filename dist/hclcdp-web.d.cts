@@ -32,6 +32,7 @@ declare class HclCdp {
     static getDeviceId(): string | "";
     static getSessionId(): string | "";
     static logout: () => Promise<void>;
+    private static parseUtmParameters;
 }
 
 export { HclCdp, type HclCdpConfig };

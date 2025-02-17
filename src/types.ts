@@ -45,5 +45,9 @@ export interface EventContext {
     title: string
     referrer: string
     url: string
+    search: string
+  }
+  utm?: {
+    [key: string]: string
   }
 }

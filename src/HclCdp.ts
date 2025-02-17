@@ -91,6 +91,7 @@ export class HclCdp {
         url: window.location.href,
         referrer: document.referrer,
         title: document.title,
+        search: document.location.search,
       },
       otherIds,
     }
@@ -102,16 +103,19 @@ export class HclCdp {
       return
     }
 
-    const pageProperties = {
+    const pageProperties: Record<string, any> = {
       ...properties,
-      path: window.location.pathname,
-      url: window.location.href,
+      path: document.location.pathname,
+      url: document.location.href,
       referrer: document.referrer,
       title: document.title,
+      search: document.location.search,
     }
 
+    const utmParams: Record<string, any> = this.parseUtmParameters(document.location.pathname)
+
     // If the SDK is initialized, send the event
-    HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), pageProperties, otherIds)
+    HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), pageProperties, utmParams, otherIds)
   }
 
   static track = async (eventName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
@@ -161,6 +165,25 @@ export class HclCdp {
   static logout = async () => {
     if (this.config.enableUserLogoutLogging) {
       HclCdp.instance.cdpClient?.logout(this.getSessionId())
+    }
+  }
+
+  private static parseUtmParameters = (path: string): Record<string, string> => {
+    try {
+      const utmRegex = /(?:\?|&)(utm_[^=]+)=(.*?)(?=&|$)/gi
+      const utmParams: Record<string, string> = {}
+      let match: RegExpExecArray | null
+
+      // Loop through the URL and match UTM parameters using the regex
+      while ((match = utmRegex.exec(document.URL)) !== null) {
+        utmParams[match[1]] = match[2]
+      }
+
+      // Return the UTM parameters if found, otherwise undefined
+      return utmParams
+    } catch (e) {
+      console.error("Error parsing UTM parameters:", e)
+      return {}
     }
   }
 }

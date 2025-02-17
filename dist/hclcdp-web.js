@@ -35,7 +35,6 @@ var package_default = {
 
 // src/CdpClient.ts
 import { UAParser } from "ua-parser-js";
-import axios from "axios";
 var CdpClient = class {
   deviceId = null;
   userId = null;
@@ -83,6 +82,7 @@ var CdpClient = class {
       }
     };
     console.log("Page event...", payload);
+    this.sendPayload(payload);
   };
   track = async (eventName, sessionId, properties, otherIds) => {
     const payload = {
@@ -102,6 +102,7 @@ var CdpClient = class {
       }
     };
     console.log("Tracking event...", payload);
+    this.sendPayload(payload);
   };
   identify = async (userId, sessionId, properties, otherIds) => {
     this.setUserId(userId);
@@ -122,6 +123,7 @@ var CdpClient = class {
       }
     };
     console.log("Identify event...", payload);
+    this.sendPayload(payload);
   };
   login = async (userId, sessionId, properties, otherIds) => {
     this.identify(userId, sessionId, properties, otherIds);
@@ -151,37 +153,18 @@ var CdpClient = class {
   createDeviceId = () => {
     return uuidv4();
   };
-  fireAnalyze = (payload) => {
-    const callbackFunctionName = "handleAnalyzeResponse";
-    const analyzeUrl = `https://pl.dev.hxcd.now.hclsoftware.cloud/analyze/analyze.php?data=${encodeURIComponent(
-      JSON.stringify(payload)
-    )}&callback=${callbackFunctionName}`;
-    window[callbackFunctionName] = (response) => {
-      console.log("Analyze response:", response);
-    };
-    const analyzeScript = document.createElement("script");
-    analyzeScript.src = analyzeUrl;
-    analyzeScript.type = "text/javascript";
-    analyzeScript.async = true;
-    document.head.appendChild(analyzeScript);
-  };
   sendPayload = async (payload) => {
-    const axiosConfig = {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Credentials": true,
-        "Content-Type": "application/json"
-      },
-      withCredentials: false
-    };
-    const response = await axios.post(
-      `${this.config.cdpEndpoint}/analyze/analyze.php`,
-      JSON.stringify(payload),
-      axiosConfig
+    const xhr = new XMLHttpRequest();
+    xhr.open(
+      "POST",
+      `${this.config.cdpEndpoint.endsWith("/") ? this.config.cdpEndpoint : `${this.config.cdpEndpoint}/`}analyze/analyze.php`,
+      true
     );
-    console.log(response);
+    xhr.withCredentials = true;
+    xhr.send(JSON.stringify(payload));
+    xhr.onerror = (e) => {
+      console.error("Request error:", e);
+    };
   };
   // private createDeviceId = (): string => {
   //   return Math.floor(Date.now() * Math.random()).toString()

@@ -1,9 +1,7 @@
 "use strict";
-var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -17,14 +15,6 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/hclcdp-web.ts
@@ -71,7 +61,6 @@ var package_default = {
 
 // src/CdpClient.ts
 var import_ua_parser_js = require("ua-parser-js");
-var import_axios = __toESM(require("axios"), 1);
 var CdpClient = class {
   deviceId = null;
   userId = null;
@@ -119,6 +108,7 @@ var CdpClient = class {
       }
     };
     console.log("Page event...", payload);
+    this.sendPayload(payload);
   };
   track = async (eventName, sessionId, properties, otherIds) => {
     const payload = {
@@ -138,6 +128,7 @@ var CdpClient = class {
       }
     };
     console.log("Tracking event...", payload);
+    this.sendPayload(payload);
   };
   identify = async (userId, sessionId, properties, otherIds) => {
     this.setUserId(userId);
@@ -158,6 +149,7 @@ var CdpClient = class {
       }
     };
     console.log("Identify event...", payload);
+    this.sendPayload(payload);
   };
   login = async (userId, sessionId, properties, otherIds) => {
     this.identify(userId, sessionId, properties, otherIds);
@@ -187,37 +179,18 @@ var CdpClient = class {
   createDeviceId = () => {
     return (0, import_uuid.v4)();
   };
-  fireAnalyze = (payload) => {
-    const callbackFunctionName = "handleAnalyzeResponse";
-    const analyzeUrl = `https://pl.dev.hxcd.now.hclsoftware.cloud/analyze/analyze.php?data=${encodeURIComponent(
-      JSON.stringify(payload)
-    )}&callback=${callbackFunctionName}`;
-    window[callbackFunctionName] = (response) => {
-      console.log("Analyze response:", response);
-    };
-    const analyzeScript = document.createElement("script");
-    analyzeScript.src = analyzeUrl;
-    analyzeScript.type = "text/javascript";
-    analyzeScript.async = true;
-    document.head.appendChild(analyzeScript);
-  };
   sendPayload = async (payload) => {
-    const axiosConfig = {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Credentials": true,
-        "Content-Type": "application/json"
-      },
-      withCredentials: false
-    };
-    const response = await import_axios.default.post(
-      `${this.config.cdpEndpoint}/analyze/analyze.php`,
-      JSON.stringify(payload),
-      axiosConfig
+    const xhr = new XMLHttpRequest();
+    xhr.open(
+      "POST",
+      `${this.config.cdpEndpoint.endsWith("/") ? this.config.cdpEndpoint : `${this.config.cdpEndpoint}/`}analyze/analyze.php`,
+      true
     );
-    console.log(response);
+    xhr.withCredentials = true;
+    xhr.send(JSON.stringify(payload));
+    xhr.onerror = (e) => {
+      console.error("Request error:", e);
+    };
   };
   // private createDeviceId = (): string => {
   //   return Math.floor(Date.now() * Math.random()).toString()

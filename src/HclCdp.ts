@@ -64,7 +64,7 @@ export class HclCdp {
 
       const cookiesToCheck = ["_ga", "_fbc", "_fbp", "mcmid"]
       cookiesToCheck.forEach(cookieName => {
-        const cookieValue = getCookie(cookieName)
+        const cookieValue = this.getCookie(cookieName)
         if (cookieValue) {
           commonIds[cookieName] = cookieValue
         }

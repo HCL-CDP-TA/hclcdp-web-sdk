@@ -1,8 +1,26 @@
+/**
+ * CDP Configuration
+ */
 export interface HclCdpConfig {
+  /**
+   * The write key to use for the CDP source. (Required)
+   */
   writeKey: string
+  /**
+   * The endpoint to use for the CDP instance. (Required)
+   */
   cdpEndpoint: string
+  /**
+   * Default session timeout. Defaults to 30 minutes. (Optional)
+   */
   inactivityTimeout?: number
+  /**
+   * Send track events for session start and end events. Defaults to false. (Optional)
+   */
   enableSessionLogging?: boolean
+  /**
+   * Send track events for User Login and Logout Events. (Optional)
+   */
   enableUserLogoutLogging?: boolean
 }
 export interface SessionData {

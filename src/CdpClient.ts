@@ -2,9 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import packageJson from "../package.json" assert { type: "json" }
 import { IResult, UAParser } from "ua-parser-js"
 import { HclCdpConfig } from "./types"
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios"
 import type { EventContext, EventPayload } from "./types"
-import CrossOriginRequest from "./CrossOriginRequest"
 
 interface SafariWindow extends Window {
   safari?: {
@@ -141,7 +139,9 @@ export class CdpClient {
     otherIds?: Record<string, any>,
   ): Promise<void> => {
     this.identify(userId, sessionId, properties, otherIds)
-    this.track("User_login", sessionId, properties, otherIds)
+    if (this.config.enableUserLogoutLogging) {
+      this.track("User_login", sessionId, properties, otherIds)
+    }
     this.setUserId(userId)
   }
 

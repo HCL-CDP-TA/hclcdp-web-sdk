@@ -22,10 +22,37 @@ interface HclCdpConfig {
      * Send track events for User Login and Logout Events. (Optional)
      */
     enableUserLogoutLogging?: boolean;
+    /**
+     * Destinatoi (Optional)
+     */
+    destinations?: DestinationConfig[];
 }
 interface SessionData {
     sessionId: string | null;
     deviceId: string | null;
+}
+interface DestinationConfig {
+    id: string;
+    classRef: CdpDestinationConstructor;
+    config: Record<string, string>;
+    instance?: any;
+}
+interface CdpDestinationHandler {
+    init(config: Record<string, string>): Promise<void>;
+    track(event: {
+        event: string;
+        properties?: Record<string, any>;
+    }): void;
+    page(event: {
+        event: string;
+        properties?: Record<string, any>;
+    }): void;
+    identify(event: {
+        properties?: Record<string, any>;
+    }): void;
+}
+interface CdpDestinationConstructor {
+    new (): CdpDestinationHandler;
 }
 
 declare global {
@@ -40,6 +67,7 @@ declare class HclCdp {
     sessionId: string | null;
     private sessionManager;
     private static config;
+    private static destinations;
     private constructor();
     static init(config: HclCdpConfig, callback?: (error: Error | null, sessionData?: SessionData) => void): Promise<void>;
     static onSessionStart: (sessionId: string) => void;
@@ -54,4 +82,43 @@ declare class HclCdp {
     private static getCookie;
 }
 
-export { HclCdp, type HclCdpConfig };
+declare global {
+    interface Window {
+        fbq: ((...args: any[]) => void) & {
+            push?: (...args: any[]) => void;
+        };
+        _fbq?: (...args: any[]) => void;
+    }
+}
+declare class Facebook implements CdpDestinationHandler {
+    private facebookPixelId;
+    init(config: Record<string, string>): Promise<void>;
+    track(event: {
+        event: string;
+        properties?: Record<string, any>;
+    }): void;
+    page(event: {
+        event: string;
+        properties?: Record<string, any>;
+    }): void;
+    identify(event: {
+        properties?: Record<string, any>;
+    }): void;
+}
+
+declare class GoogleAnalytics implements CdpDestinationHandler {
+    init(config: Record<string, string>): Promise<void>;
+    track(event: {
+        event: string;
+        properties?: Record<string, any>;
+    }): void;
+    page(event: {
+        event: string;
+        properties?: Record<string, any>;
+    }): void;
+    identify(event: {
+        properties?: Record<string, any>;
+    }): void;
+}
+
+export { Facebook, GoogleAnalytics, HclCdp, type HclCdpConfig };

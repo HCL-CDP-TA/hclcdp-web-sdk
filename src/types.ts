@@ -22,6 +22,10 @@ export interface HclCdpConfig {
    * Send track events for User Login and Logout Events. (Optional)
    */
   enableUserLogoutLogging?: boolean
+  /**
+   * Destinatoi (Optional)
+   */
+  destinations?: DestinationConfig[]
 }
 export interface SessionData {
   sessionId: string | null
@@ -68,4 +72,21 @@ export interface EventContext {
   utm?: {
     [key: string]: string
   }
+}
+
+export interface DestinationConfig {
+  id: string
+  classRef: CdpDestinationConstructor
+  config: Record<string, string>
+  instance?: any
+}
+export interface CdpDestinationHandler {
+  init(config: Record<string, string>): Promise<void>
+  track(event: { event: string; properties?: Record<string, any> }): void
+  page(event: { event: string; properties?: Record<string, any> }): void
+  identify(event: { properties?: Record<string, any> }): void
+}
+
+export interface CdpDestinationConstructor {
+  new (): CdpDestinationHandler
 }

@@ -1,14 +1,15 @@
 import { CdpClient } from "./CdpClient"
 import { SessionManager } from "./SessionManager"
 import EventQueue from "./EventQueue"
-import { HclCdpConfig, SessionData } from "./types"
+import { DestinationConfig, HclCdpConfig, SessionData } from "./types"
+import { GoogleAnalytics } from "./destinations/GoogleAnalytics"
+import { Facebook } from "./destinations/Facebook"
 
 declare global {
   interface Window {
     HclCdp: typeof HclCdp
   }
 }
-
 export class HclCdp {
   private static instance: HclCdp
   private cdpClient: CdpClient | null = null
@@ -22,16 +23,35 @@ export class HclCdp {
     enableSessionLogging: false,
     enableUserLogoutLogging: false,
   }
+  private static destinations: DestinationConfig[] = []
 
   private constructor() {
     // Private constructor to enforce singleton pattern
   }
 
   static async init(config: HclCdpConfig, callback?: (error: Error | null, sessionData?: SessionData) => void) {
+    this.destinations = config.destinations || []
+    this.destinations.push({
+      id: "GA4",
+      classRef: GoogleAnalytics,
+      config: { measurementId: "G-4Z3JLMVDZ9" },
+      instance: null,
+    })
+    this.destinations.push({
+      id: "Facebook",
+      classRef: Facebook,
+      config: { pixelId: "844187091089998" },
+      instance: null,
+    })
+
+    for (const destination of this.destinations) {
+      destination.instance = new destination.classRef()
+      await destination.instance.init(destination.config)
+    }
+
     if (!HclCdp.instance) {
       HclCdp.instance = new HclCdp()
     }
-
     this.config = config
 
     // Initialize CDP client
@@ -106,6 +126,10 @@ export class HclCdp {
       otherIds,
     }
 
+    this.destinations.forEach(destination => {
+      destination.instance.page({ event: pageName, properties: payload.properties })
+    })
+
     if (!HclCdp.instance || !HclCdp.instance.cdpClient) {
       // If the SDK is not initialized, queue the event
       console.log("adding to queue")
@@ -113,29 +137,22 @@ export class HclCdp {
       return
     }
 
-    const pageProperties: Record<string, any> = {
-      ...properties,
-      path: document.location.pathname,
-      url: document.location.href,
-      referrer: document.referrer,
-      title: document.title,
-      search: document.location.search,
-    }
-
     const utmParams: Record<string, any> = this.parseUtmParameters(document.location.pathname)
 
     // If the SDK is initialized, send the event
-    HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), pageProperties, utmParams, otherIds)
+    HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), payload.properties, utmParams, otherIds)
   }
 
   static track = async (eventName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
+    this.destinations.forEach(destination => {
+      destination.instance.track({ event: eventName, properties })
+    })
     const payload = {
       sessionId: this.getSessionId(),
       eventName,
       properties,
       otherIds,
     }
-
     if (!HclCdp.instance || !HclCdp.instance.cdpClient) {
       // If the SDK is not initialized, queue the event
       EventQueue.addToQueue(EventQueue.TRACK_QUEUE_KEY, payload)
@@ -147,6 +164,9 @@ export class HclCdp {
   }
 
   static identify = async (userId: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
+    this.destinations.forEach(destination => {
+      destination.instance.identify({ properties })
+    })
     const payload = {
       sessionId: this.getSessionId(),
       userId,

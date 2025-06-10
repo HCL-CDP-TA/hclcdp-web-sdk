@@ -53,7 +53,9 @@ export class CdpClient {
     utmParams?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
-    this.context.utm = utmParams
+    if (this.context) {
+      this.context.utm = utmParams
+    }
 
     const payload: EventPayload = {
       type: "page",
@@ -82,6 +84,14 @@ export class CdpClient {
     properties?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
+    this.context.page = {
+      path: window.location.pathname,
+      url: window.location.href,
+      referrer: document.referrer,
+      title: document.title,
+      search: document.location.search,
+    }
+
     const payload: EventPayload = {
       type: "track",
       event: eventName,
@@ -93,7 +103,7 @@ export class CdpClient {
       otherIds: {
         ...otherIds,
       },
-      context: this.context,
+      context: this.context || {},
       properties: {
         ...properties,
       },

@@ -31,18 +31,6 @@ export class HclCdp {
 
   static async init(config: HclCdpConfig, callback?: (error: Error | null, sessionData?: SessionData) => void) {
     this.destinations = config.destinations || []
-    this.destinations.push({
-      id: "GA4",
-      classRef: GoogleAnalytics,
-      config: { measurementId: "G-4Z3JLMVDZ9" },
-      instance: null,
-    })
-    this.destinations.push({
-      id: "Facebook",
-      classRef: Facebook,
-      config: { pixelId: "844187091089998" },
-      instance: null,
-    })
 
     for (const destination of this.destinations) {
       destination.instance = new destination.classRef()

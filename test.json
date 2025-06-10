@@ -1,0 +1,33 @@
+{
+  "type": "page",
+  "name": "Home Page",
+  "id": "c37d835b-01e4-4232-850f-725c5e6032a1",
+  "originalTimestamp": 1749535801972,
+  "sessionId": "a3b90cff-6fec-4249-8314-76b3e6c69b5b",
+  "messageId": "0db3280b-8d7a-4055-b08d-11edffa54cfb",
+  "writeKey": "zpgimm1j76dntmdfvryq",
+  "otherIds": {},
+  "context": {
+    "library": {
+      "name": "hclcdp-web-sdk",
+      "type": "javascript",
+      "version": "0.0.2"
+    },
+    "userAgent": {
+      "deviceType": "Desktop",
+      "osType": "macOS",
+      "osVersion": "10.15.7",
+      "browser": "Chrome",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+    },
+    "utm": {}
+  },
+  "properties": {
+    "test": "test",
+    "path": "/react",
+    "url": "http://localhost:3002/react",
+    "referrer": "http://localhost:3002/react",
+    "title": "HCL CDP SDK Test",
+    "search": ""
+  }
+}

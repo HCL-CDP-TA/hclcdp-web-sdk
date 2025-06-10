@@ -74,7 +74,6 @@ export class CdpClient {
       },
     }
 
-    console.log("Page event...", payload)
     this.sendPayload(payload)
   }
 
@@ -194,36 +193,19 @@ export class CdpClient {
       true,
     )
     xhr.withCredentials = true
-    xhr.send(JSON.stringify(payload))
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        console.info("Payload sent successfully:", xhr.responseText)
+      } else {
+        console.error(`API responded with status ${xhr.status}:`, xhr.responseText)
+      }
+    }
 
     xhr.onerror = e => {
       console.error("Request error:", e)
     }
+
+    xhr.send(JSON.stringify(payload))
   }
-
-  // private createDeviceId = (): string => {
-  //   return Math.floor(Date.now() * Math.random()).toString()
-  // }
-  // private createDeviceId = (): string => {
-  //   const prefix = this.isSafari() ? "vizSF_" : "viz_"
-  //   const maxRandomValue = 7418186
-  //   const timestampHex = Math.floor(Date.now() / 1000).toString(16)
-
-  //   let randomHex = Math.floor(Math.random() * maxRandomValue).toString(16)
-  //   while (randomHex.length < 5) {
-  //     randomHex += Math.floor(Math.random() * maxRandomValue).toString(16)
-  //   }
-
-  //   // Take the last 5 characters to ensure consistent length
-  //   randomHex = randomHex.slice(-5)
-
-  //   return `${prefix}${timestampHex}${randomHex}`
-  // }
-
-  // private isSafari = (): boolean => {
-  //   return (
-  //     Object.prototype.toString.call(window.HTMLElement).includes("Constructor") ||
-  //     !!((window as SafariWindow).safari?.pushNotification?.toString() === "[object SafariRemoteNotification]")
-  //   )
-  // }
 }

@@ -53,7 +53,7 @@ export class CdpClient {
     utmParams?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
-    if (this.context) {
+    if (this.context && utmParams) {
       this.context.utm = utmParams
     }
 

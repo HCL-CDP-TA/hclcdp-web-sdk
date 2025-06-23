@@ -1,17 +1,13 @@
 {
-  "name": "hclcdp-web-sdk",
-  "version": "0.0.4",
+  "name": "@hcl-cdp-ta/hclcdp-web-sdk",
+  "version": "0.0.5",
   "description": "HCL CDP Web SDK",
   "keywords": [
     "HCLCDP"
   ],
-  "homepage": "https://github.com/simonpallisterhcl/hclcdp-web-sdk#readme",
-  "bugs": {
-    "url": "https://github.com/simonpallisterhcl/hclcdp-web-sdk/issues"
-  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonpallisterhcl/hclcdp-web-sdk.git"
+    "url": "git+https://github.com/HCL-CDP-TA/hclcdp-web-sdk.git"
   },
   "license": "MIT",
   "author": "Simon Pallister",

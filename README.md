@@ -7,13 +7,13 @@ This repository contains the HCL CDP Web SDK, which provides a set of tools and 
 To install the HCL CDP Web SDK for React, you can use npm or yarn:
 
 ```bash
-npm install hclcdp-web-sdk
+npm install @hcl-cdp-ta/hclcdp-web-sdk
 ```
 
 or
 
 ```bash
-yarn add hclcdp-web-sdk
+yarn add @hcl-cdp-ta/hclcdp-web-sdk
 ```
 
 ### Usage
@@ -23,8 +23,8 @@ Here's an example of how to use the HCL CDP Web SDK - replace with endpoint and 
 ```typescript
 "use client"
 import Link from "next/link"
-import { HclCdp } from "hclcdp-web-sdk"
-import type { HclCdpConfig } from "hclcdp-web-sdk"
+import { HclCdp } from "@hcl-cdp-ta/hclcdp-web-sdk"
+import type { HclCdpConfig } from "@hcl-cdp-ta/hclcdp-web-sdk"
 import { useEffect } from "react"
 
 export default function Raw() {

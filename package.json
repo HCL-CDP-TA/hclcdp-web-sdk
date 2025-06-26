@@ -1,6 +1,6 @@
 {
   "name": "@hcl-cdp-ta/hclcdp-web-sdk",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "HCL CDP Web SDK",
   "keywords": [
     "HCLCDP"
@@ -14,7 +14,8 @@
   "type": "module",
   "main": "./dist/hclcdp-web.js",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "dependencies": {
     "axios": "^1.7.9",

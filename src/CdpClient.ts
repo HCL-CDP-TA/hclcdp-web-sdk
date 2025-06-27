@@ -146,16 +146,19 @@ export class CdpClient {
     sessionId: string,
     properties?: Record<string, any>,
     otherIds?: Record<string, any>,
+    identifier: string = "User_login",
   ): Promise<void> => {
     this.identify(userId, sessionId, properties, otherIds)
     if (this.config.enableUserLogoutLogging) {
-      this.track("User_login", sessionId, properties, otherIds)
+      this.track(identifier, sessionId, properties, otherIds)
     }
     this.setUserId(userId)
   }
 
   public logout = async (sessionId: string): Promise<void> => {
-    this.track("User_logout", sessionId)
+    if (this.config.enableUserLogoutLogging) {
+      this.track("User_logout", sessionId)
+    }
     this.removeUserId()
   }
 

@@ -1,27 +1,28 @@
 import { defineConfig } from "tsup"
 
-export default defineConfig({
+export default defineConfig(options => ({
   format: ["cjs", "esm"],
   entry: ["./src/hclcdp-web.ts"],
   dts: true,
   shims: true,
   skipNodeModulesBundle: true,
   clean: true,
-  watch: true,
+  watch: options.watch,
   minify: true,
   terserOptions: {
     compress: {
-      drop_console: true, // Removes all console.* calls (good for production)
-      drop_debugger: true, // Removes all `debugger` statements      dead_code: true, // Eliminates unreachable code
-      passes: 2, // Runs multiple compression passes (can further reduce size)
+      drop_console: true,
+      drop_debugger: true,
+      dead_code: true,
+      passes: 2,
     },
     mangle: {
-      toplevel: true, // Mangles top-level variable and function names for better compression
+      toplevel: true,
     },
     output: {
-      comments: false, // Removes comments (except license comments if required)
+      comments: false,
     },
-    keep_classnames: false, // Optional: Can help if using class-based libraries
-    keep_fnames: false, // Optional: Can help if function names are critical
+    keep_classnames: false,
+    keep_fnames: false,
   },
-})
+}))

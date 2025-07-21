@@ -59,8 +59,11 @@ export class CdpClient {
 
     const payload: EventPayload = {
       type: "page",
+      event: "page_view",
       name: pageName,
       id: this.deviceId || "",
+      userId: this.userId || "",
+      deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
       sessionId,
       messageId: uuidv4(),
@@ -68,7 +71,10 @@ export class CdpClient {
       otherIds: {
         ...otherIds,
       },
-      context: this.context,
+      context: this.context || {
+        library: { name: "", type: "" },
+        userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+      },
       properties: {
         ...properties,
       },
@@ -83,18 +89,22 @@ export class CdpClient {
     properties?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
-    this.context.page = {
-      path: window.location.pathname,
-      url: window.location.href,
-      referrer: document.referrer,
-      title: document.title,
-      search: document.location.search,
+    if (this.context) {
+      this.context.page = {
+        path: window.location.pathname,
+        url: window.location.href,
+        referrer: document.referrer,
+        title: document.title,
+        search: document.location.search,
+      }
     }
 
     const payload: EventPayload = {
       type: "track",
       event: eventName,
       id: this.deviceId || "",
+      userId: this.userId || "",
+      deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
       sessionId,
       messageId: uuidv4(),
@@ -102,7 +112,7 @@ export class CdpClient {
       otherIds: {
         ...otherIds,
       },
-      context: this.context || {},
+      context: this.context as EventContext,
       properties: {
         ...properties,
       },
@@ -122,8 +132,10 @@ export class CdpClient {
 
     const payload: EventPayload = {
       type: "identify",
+      event: "identify_event",
       userId: userId,
       id: this.deviceId || "",
+      deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
       sessionId,
       messageId: uuidv4(),
@@ -131,7 +143,10 @@ export class CdpClient {
       otherIds: {
         ...otherIds,
       },
-      context: this.context,
+      context: this.context || {
+        library: { name: "", type: "" },
+        userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+      },
       customerProperties: {
         ...properties,
       },

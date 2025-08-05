@@ -23,6 +23,7 @@ export class CdpClient {
 
   constructor() {
     if (!this.deviceId) this.deviceId = this.getDeviceId()
+    if (!this.userId) this.userId = this.getUserId()
   }
 
   public init = async (config: HclCdpConfig): Promise<void> => {
@@ -194,6 +195,11 @@ export class CdpClient {
       localStorage.setItem(this.DEVICE_ID, deviceId)
     }
     return deviceId
+  }
+
+  private getUserId = (): string | null => {
+    const userId = localStorage.getItem(this.USER_ID)
+    return userId || null
   }
 
   private createDeviceId = (): string => {

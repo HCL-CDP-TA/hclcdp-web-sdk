@@ -50,7 +50,6 @@ export class SessionManager {
       this.startNewSession()
     }
   }
-
   private getSessionData(): SessionData | null {
     const sessionDataJson = localStorage.getItem(this.SESSION_DATA)
     return sessionDataJson ? JSON.parse(sessionDataJson) : null
@@ -71,6 +70,7 @@ export class SessionManager {
 
   private startNewSession() {
     this.sessionId = this.generateSessionId()
+
     const sessionData: SessionData = {
       sessionId: this.sessionId,
       lastActivityTimestamp: Date.now(),
@@ -78,9 +78,9 @@ export class SessionManager {
     }
     this.saveSessionData(sessionData)
     this.resetInactivityTimer()
+
     this.onSessionStart(this.sessionId)
   }
-
   private resetInactivityTimer() {
     if (this.inactivityTimer) {
       clearTimeout(this.inactivityTimer)
@@ -100,7 +100,9 @@ export class SessionManager {
 
   private endSession() {
     localStorage.removeItem(this.SESSION_DATA)
-    this.onSessionEnd(this.sessionId)
+    if (this.sessionId) {
+      this.onSessionEnd(this.sessionId)
+    }
     this.sessionId = null
   }
 
@@ -113,5 +115,13 @@ export class SessionManager {
 
   getSessionId(): string | null {
     return this.sessionId
+  }
+
+  // Method to force end the current session and start a new one
+  forceNewSession(): void {
+    if (this.sessionId) {
+      this.endSession()
+    }
+    this.startNewSession()
   }
 }

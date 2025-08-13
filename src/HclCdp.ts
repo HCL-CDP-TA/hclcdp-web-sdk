@@ -40,17 +40,21 @@ export class HclCdp {
     if (!HclCdp.instance) {
       HclCdp.instance = new HclCdp()
     }
-    this.config = config
 
-    // Initialize CDP client
+    this.config = {
+      writeKey: config.writeKey,
+      cdpEndpoint: config.cdpEndpoint,
+      inactivityTimeout: config.inactivityTimeout || 30,
+      enableSessionLogging: config.enableSessionLogging === true,
+      enableUserLogoutLogging: config.enableUserLogoutLogging === true,
+      destinations: config.destinations || [],
+    }
+
+    // Initialize CDP client first
     HclCdp.instance.cdpClient = new CdpClient()
-
-    // Pass the static methods as callbacks
-    HclCdp.instance.sessionManager = new SessionManager(config, HclCdp.onSessionStart, HclCdp.onSessionEnd)
+    await HclCdp.instance.cdpClient.init(config)
 
     try {
-      await HclCdp.instance.cdpClient.init(config)
-
       // Flush queued events
       EventQueue.flushQueue(EventQueue.PAGE_QUEUE_KEY, HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient))
       EventQueue.flushQueue(EventQueue.TRACK_QUEUE_KEY, HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient))
@@ -58,6 +62,9 @@ export class HclCdp {
         EventQueue.IDENTIFY_QUEUE_KEY,
         HclCdp.instance.cdpClient.identify.bind(HclCdp.instance.cdpClient),
       )
+
+      // Initialize session manager AFTER everything else is ready
+      HclCdp.instance.sessionManager = new SessionManager(config, HclCdp.onSessionStart, HclCdp.onSessionEnd)
 
       // Attach the instance to the window object
       if (typeof window !== "undefined") {
@@ -88,14 +95,26 @@ export class HclCdp {
   }
 
   static onSessionStart = (sessionId: string) => {
-    if (this.config.enableSessionLogging) {
-      HclCdp.instance.cdpClient?.track("Session_Start", sessionId)
+    if (this.config?.enableSessionLogging === true) {
+      if (HclCdp.instance?.cdpClient) {
+        HclCdp.instance.cdpClient.track("Session_Start", sessionId)
+      } else {
+        // Queue the session start event
+        EventQueue.addToQueue(EventQueue.TRACK_QUEUE_KEY, {
+          sessionId,
+          eventName: "Session_Start",
+          properties: {},
+          otherIds: {},
+        })
+      }
     }
   }
 
   static onSessionEnd = (sessionId: string) => {
-    if (this.config.enableSessionLogging) {
-      HclCdp.instance.cdpClient?.track("Session_End", sessionId)
+    if (this.config?.enableSessionLogging === true) {
+      if (HclCdp.instance?.cdpClient) {
+        HclCdp.instance.cdpClient.track("Session_End", sessionId)
+      }
     }
   }
 
@@ -181,8 +200,21 @@ export class HclCdp {
   }
 
   static logout = async () => {
+    if (!HclCdp.instance?.cdpClient) {
+      return
+    }
+
+    // First track the logout event if enabled and clear user data
     if (this.config.enableUserLogoutLogging) {
-      HclCdp.instance.cdpClient?.logout(this.getSessionId())
+      HclCdp.instance.cdpClient.logout(this.getSessionId())
+    } else {
+      // Even if logging is disabled, we still need to clear user data
+      HclCdp.instance.cdpClient.logout(this.getSessionId())
+    }
+
+    // Force start a new session after logout
+    if (HclCdp.instance.sessionManager) {
+      HclCdp.instance.sessionManager.forceNewSession()
     }
   }
 

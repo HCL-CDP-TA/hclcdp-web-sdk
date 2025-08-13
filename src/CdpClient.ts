@@ -20,6 +20,7 @@ export class CdpClient {
 
   private readonly DEVICE_ID = "hclcdp_device_id"
   private readonly USER_ID = "hclcdp_user_id"
+  private readonly SESSION_ID = "hclcdp_session_id"
 
   constructor() {
     if (!this.deviceId) this.deviceId = this.getDeviceId()
@@ -164,6 +165,7 @@ export class CdpClient {
     otherIds?: Record<string, any>,
     identifier: string = "User_login",
   ): Promise<void> => {
+    console.log("Logging in user", this.userId)
     this.identify(userId, sessionId, properties, otherIds)
     if (this.config.enableUserLogoutLogging) {
       this.track(identifier, sessionId, properties, otherIds)
@@ -172,9 +174,12 @@ export class CdpClient {
   }
 
   public logout = async (sessionId: string): Promise<void> => {
+    // Track logout event if logging is enabled
     if (this.config.enableUserLogoutLogging) {
       this.track("User_logout", sessionId)
     }
+
+    // Always remove user data regardless of logging setting
     this.removeUserId()
   }
 
@@ -185,7 +190,13 @@ export class CdpClient {
 
   private removeUserId = (): void => {
     this.userId = null
+    this.deviceId = null // Clear the in-memory device ID
     localStorage.removeItem(this.USER_ID)
+    localStorage.removeItem(this.DEVICE_ID)
+    localStorage.removeItem(this.SESSION_ID)
+
+    // Generate a new device ID for future events
+    this.deviceId = this.getDeviceId()
   }
 
   private getDeviceId = (): string | null => {

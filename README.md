@@ -1,3 +1,5 @@
+[![Version](https://img.shields.io/github/v/release/HCL-CDP-TA/hclcdp-web-sdk)](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/releases)
+
 ## HCL CDP Web/JS SDK
 
 This repository contains the HCL CDP Web SDK, which provides a set of tools and components to integrate with the HCL Customer Data Platform (CDP). For those wanting to integrate using a React/Nextjs application, use the hclcdp-web-sdk-react
@@ -39,7 +41,7 @@ export default function Raw() {
 
     HclCdp.init(config, () => {
       console.log("cdp initialized")
-      HclCdp.page("Raw Home Page")
+      HclCdp.page("Home Page")
     })
   })
 

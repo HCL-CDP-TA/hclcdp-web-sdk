@@ -28,9 +28,6 @@ export class CdpClient {
     console.log("🕐 Constructor timestamp:", new Date().toISOString())
     console.log("CdpClient constructor - starting ID initialization")
 
-    // First, migrate any old localStorage data to new format
-    this.migrateOldLocalStorageData()
-
     // Load all identity data from single localStorage object
     const identityData = this.getStoredIdentityData()
 
@@ -227,63 +224,16 @@ export class CdpClient {
     // Device ID stays the same - it's tied to the physical device, not the user
   }
 
-  // Migrate old localStorage format to new single object format
-  private migrateOldLocalStorageData = (): void => {
-    console.log("migrateOldLocalStorageData - checking for old format data")
-
-    // Check if new format already exists
-    const existingData = localStorage.getItem(this.CDP_STORAGE_KEY)
-    if (existingData) {
-      console.log("migrateOldLocalStorageData - new format already exists, skipping migration")
-      return
-    }
-
-    // Check for old format data
-    const oldProfileId = localStorage.getItem("hclcdp_profile_id") || localStorage.getItem("hclcdp_device_id") // Previous naming
-    const oldDeviceId = localStorage.getItem("hclcdp_device_id")
-    const oldUserId = localStorage.getItem("hclcdp_user_id")
-
-    if (oldProfileId || oldDeviceId || oldUserId) {
-      console.log("migrateOldLocalStorageData - found old format data, migrating...")
-      console.log("Old Profile ID:", oldProfileId)
-      console.log("Old Device ID:", oldDeviceId)
-      console.log("Old User ID:", oldUserId)
-
-      // Create new format object
-      const migratedData: Partial<IdentityData> = {
-        profileId: oldProfileId || undefined,
-        deviceId: oldDeviceId || undefined,
-        userId: oldUserId || undefined,
-      }
-
-      // Save in new format
-      localStorage.setItem(this.CDP_STORAGE_KEY, JSON.stringify(migratedData))
-      console.log("migrateOldLocalStorageData - migrated data:", migratedData)
-
-      // Clean up old format
-      localStorage.removeItem("hclcdp_profile_id")
-      localStorage.removeItem("hclcdp_device_id")
-      localStorage.removeItem("hclcdp_user_id")
-      console.log("migrateOldLocalStorageData - cleaned up old format keys")
-    } else {
-      console.log("migrateOldLocalStorageData - no old format data found")
-    }
-  }
-
   // New localStorage methods using single object
   private getStoredIdentityData = (): Partial<IdentityData> => {
-    console.log("getStoredIdentityData - checking localStorage for key:", this.CDP_STORAGE_KEY)
     const stored = localStorage.getItem(this.CDP_STORAGE_KEY)
-    console.log("getStoredIdentityData - found in localStorage:", stored)
 
     if (!stored) {
-      console.log("getStoredIdentityData - no existing data, returning empty object")
       return {}
     }
 
     try {
       const parsed = JSON.parse(stored)
-      console.log("getStoredIdentityData - parsed data:", parsed)
       return parsed
     } catch (error) {
       console.error("getStoredIdentityData - error parsing stored data:", error)
@@ -298,20 +248,16 @@ export class CdpClient {
       userId: this.userId || "",
     }
 
-    console.log("saveIdentityData - saving data:", identityData)
     localStorage.setItem(this.CDP_STORAGE_KEY, JSON.stringify(identityData))
-    console.log("saveIdentityData - saved to localStorage")
   }
 
   private createProfileId = (): string => {
     const profileId = uuidv4()
-    console.log("createProfileId - generated:", profileId)
     return profileId
   }
 
   private createDeviceId = (): string => {
     const deviceId = uuidv4()
-    console.log("createDeviceId - generated:", deviceId)
     return deviceId
   }
 

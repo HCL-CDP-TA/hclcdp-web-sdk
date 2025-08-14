@@ -1,7 +1,7 @@
 import { CdpClient } from "./CdpClient"
 import { SessionManager } from "./SessionManager"
 import EventQueue from "./EventQueue"
-import { DestinationConfig, HclCdpConfig, SessionData } from "./types"
+import { DestinationConfig, HclCdpConfig, SessionData, IdentityData } from "./types"
 import { GoogleAnalytics } from "./destinations/GoogleAnalytics"
 import { Facebook } from "./destinations/Facebook"
 
@@ -193,6 +193,21 @@ export class HclCdp {
 
   static getDeviceId(): string | "" {
     return HclCdp.instance?.cdpClient?.deviceId || ""
+  }
+
+  static getProfileId(): string | "" {
+    return HclCdp.instance?.cdpClient?.profileId || ""
+  }
+
+  static getUserId(): string | "" {
+    return HclCdp.instance?.cdpClient?.userId || ""
+  }
+
+  static getIdentityData(): IdentityData | null {
+    if (!HclCdp.instance?.cdpClient) {
+      return null
+    }
+    return HclCdp.instance.cdpClient.getIdentityData()
   }
 
   static getSessionId(): string | "" {

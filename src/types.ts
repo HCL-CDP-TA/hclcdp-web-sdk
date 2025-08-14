@@ -23,7 +23,7 @@ export interface HclCdpConfig {
    */
   enableUserLogoutLogging?: boolean
   /**
-   * Destinatoi (Optional)
+   * Destinations (Optional)
    */
   destinations?: DestinationConfig[]
 }
@@ -32,12 +32,19 @@ export interface SessionData {
   deviceId: string | null
 }
 
+export interface IdentityData {
+  profileId: string
+  deviceId: string
+  userId: string
+}
+
 export interface EventPayload {
   type: string
   event: string
   name?: string
   userId: string
-  id: string
+  id: string // This will be the profileId
+  deviceId: string
   sessionId: string
   originalTimestamp: number
   messageId: string

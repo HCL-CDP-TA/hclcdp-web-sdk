@@ -23,13 +23,18 @@ interface HclCdpConfig {
      */
     enableUserLogoutLogging?: boolean;
     /**
-     * Destinatoi (Optional)
+     * Destinations (Optional)
      */
     destinations?: DestinationConfig[];
 }
 interface SessionData {
     sessionId: string | null;
     deviceId: string | null;
+}
+interface IdentityData {
+    profileId: string;
+    deviceId: string;
+    userId: string;
 }
 interface DestinationConfig {
     id: string;
@@ -76,6 +81,9 @@ declare class HclCdp {
     static track: (eventName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => Promise<void>;
     static identify: (userId: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => Promise<void>;
     static getDeviceId(): string | "";
+    static getProfileId(): string | "";
+    static getUserId(): string | "";
+    static getIdentityData(): IdentityData | null;
     static getSessionId(): string | "";
     static logout: () => Promise<void>;
     private static parseUtmParameters;
@@ -121,4 +129,4 @@ declare class GoogleAnalytics implements CdpDestinationHandler {
     }): void;
 }
 
-export { Facebook, GoogleAnalytics, HclCdp, type HclCdpConfig };
+export { Facebook, GoogleAnalytics, HclCdp, type HclCdpConfig, type IdentityData };

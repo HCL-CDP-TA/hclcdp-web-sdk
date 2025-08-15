@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.1.2...v0.2.0) (2025-08-15)
+
+
+### Features
+
+* added enhanced session and identity observability and API access ([ee72cb5](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/ee72cb525c30e3bea46bd2412d9e38b44068beb9))
+
 ## [0.1.2](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.1.1...v0.1.2) (2025-08-14)
 
 

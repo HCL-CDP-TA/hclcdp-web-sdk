@@ -12,7 +12,16 @@
   "license": "MIT",
   "author": "Simon Pallister",
   "type": "module",
-  "main": "./dist/hclcdp-web.js",
+  "main": "./dist/hclcdp-web.cjs",
+  "module": "./dist/hclcdp-web.js",
+  "types": "./dist/hclcdp-web.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/hclcdp-web.d.ts",
+      "import": "./dist/hclcdp-web.js",
+      "require": "./dist/hclcdp-web.cjs"
+    }
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch"

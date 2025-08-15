@@ -32,6 +32,12 @@ export interface SessionData {
   deviceId: string | null
 }
 
+export interface FullSessionData {
+  sessionId: string
+  lastActivityTimestamp: number
+  sessionStartTimestamp: number
+}
+
 export interface IdentityData {
   profileId: string
   deviceId: string

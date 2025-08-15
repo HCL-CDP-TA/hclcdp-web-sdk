@@ -31,6 +31,11 @@ interface SessionData {
     sessionId: string | null;
     deviceId: string | null;
 }
+interface FullSessionData {
+    sessionId: string;
+    lastActivityTimestamp: number;
+    sessionStartTimestamp: number;
+}
 interface IdentityData {
     profileId: string;
     deviceId: string;
@@ -80,11 +85,13 @@ declare class HclCdp {
     static page: (pageName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => Promise<void>;
     static track: (eventName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => Promise<void>;
     static identify: (userId: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => Promise<void>;
-    static getDeviceId(): string | "";
-    static getProfileId(): string | "";
-    static getUserId(): string | "";
     static getIdentityData(): IdentityData | null;
+    static getSessionData(): FullSessionData | null;
     static getSessionId(): string | "";
+    static setSessionLogging(enabled: boolean): void;
+    static setUserLogoutLogging(enabled: boolean): void;
+    static setInactivityTimeout(timeoutMinutes: number): void;
+    static getConfig(): Readonly<HclCdpConfig>;
     static logout: () => Promise<void>;
     private static parseUtmParameters;
     private static getCookie;

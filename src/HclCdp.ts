@@ -1,7 +1,7 @@
 import { CdpClient } from "./CdpClient"
 import { SessionManager } from "./SessionManager"
 import EventQueue from "./EventQueue"
-import { DestinationConfig, HclCdpConfig, SessionData, IdentityData } from "./types"
+import { DestinationConfig, HclCdpConfig, SessionData, IdentityData, FullSessionData } from "./types"
 import { GoogleAnalytics } from "./destinations/GoogleAnalytics"
 import { Facebook } from "./destinations/Facebook"
 
@@ -86,7 +86,13 @@ export class HclCdp {
       })
 
       // Call the callback with the deviceId
-      if (callback) callback(null, { deviceId: HclCdp.getDeviceId() || null, sessionId: HclCdp.getSessionId() || null })
+      if (callback) {
+        const identityData = HclCdp.getIdentityData()
+        callback(null, {
+          deviceId: identityData?.deviceId || null,
+          sessionId: HclCdp.getSessionId() || null,
+        })
+      }
     } catch (error) {
       // Call the callback with the error
       console.log("Error initializing HCL CDP SDK:", error)
@@ -191,18 +197,6 @@ export class HclCdp {
     HclCdp.instance.cdpClient.identify(userId, this.getSessionId(), properties, otherIds)
   }
 
-  static getDeviceId(): string | "" {
-    return HclCdp.instance?.cdpClient?.deviceId || ""
-  }
-
-  static getProfileId(): string | "" {
-    return HclCdp.instance?.cdpClient?.profileId || ""
-  }
-
-  static getUserId(): string | "" {
-    return HclCdp.instance?.cdpClient?.userId || ""
-  }
-
   static getIdentityData(): IdentityData | null {
     if (!HclCdp.instance?.cdpClient) {
       return null
@@ -210,8 +204,44 @@ export class HclCdp {
     return HclCdp.instance.cdpClient.getIdentityData()
   }
 
+  static getSessionData(): FullSessionData | null {
+    return HclCdp.instance?.sessionManager?.getFullSessionData() || null
+  }
+
   static getSessionId(): string | "" {
     return HclCdp.instance?.sessionManager?.getSessionId() || ""
+  }
+
+  static setSessionLogging(enabled: boolean): void {
+    this.config.enableSessionLogging = enabled
+    // Also update CdpClient config if it exists
+    if (HclCdp.instance?.cdpClient) {
+      HclCdp.instance.cdpClient.updateConfig({ enableSessionLogging: enabled })
+    }
+  }
+
+  static setUserLogoutLogging(enabled: boolean): void {
+    this.config.enableUserLogoutLogging = enabled
+    // Also update CdpClient config if it exists
+    if (HclCdp.instance?.cdpClient) {
+      HclCdp.instance.cdpClient.updateConfig({ enableUserLogoutLogging: enabled })
+    }
+  }
+
+  static setInactivityTimeout(timeoutMinutes: number): void {
+    this.config.inactivityTimeout = timeoutMinutes
+    // Also update SessionManager if it exists
+    if (HclCdp.instance?.sessionManager) {
+      HclCdp.instance.sessionManager.updateTimeout(timeoutMinutes)
+    }
+    // Also update CdpClient config if it exists
+    if (HclCdp.instance?.cdpClient) {
+      HclCdp.instance.cdpClient.updateConfig({ inactivityTimeout: timeoutMinutes })
+    }
+  }
+
+  static getConfig(): Readonly<HclCdpConfig> {
+    return { ...this.config }
   }
 
   static logout = async () => {

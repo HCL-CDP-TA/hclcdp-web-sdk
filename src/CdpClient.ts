@@ -70,6 +70,10 @@ export class CdpClient {
     }
   }
 
+  public updateConfig(configUpdates: Partial<HclCdpConfig>): void {
+    this.config = { ...this.config, ...configUpdates }
+  }
+
   public page = async (
     pageName: string,
     sessionId: string,

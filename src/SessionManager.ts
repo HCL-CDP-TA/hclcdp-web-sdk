@@ -51,12 +51,12 @@ export class SessionManager {
     }
   }
   private getSessionData(): SessionData | null {
-    const sessionDataJson = localStorage.getItem(this.SESSION_DATA)
+    const sessionDataJson = sessionStorage.getItem(this.SESSION_DATA)
     return sessionDataJson ? JSON.parse(sessionDataJson) : null
   }
 
   private saveSessionData(sessionData: SessionData) {
-    localStorage.setItem(this.SESSION_DATA, JSON.stringify(sessionData))
+    sessionStorage.setItem(this.SESSION_DATA, JSON.stringify(sessionData))
   }
 
   private isSessionValid(sessionData: SessionData): boolean {
@@ -99,7 +99,7 @@ export class SessionManager {
   }
 
   private endSession() {
-    localStorage.removeItem(this.SESSION_DATA)
+    sessionStorage.removeItem(this.SESSION_DATA)
     if (this.sessionId) {
       this.onSessionEnd(this.sessionId)
     }
@@ -117,11 +117,23 @@ export class SessionManager {
     return this.sessionId
   }
 
+  // Get full session data including timestamps
+  getFullSessionData(): SessionData | null {
+    return this.getSessionData()
+  }
+
   // Method to force end the current session and start a new one
   forceNewSession(): void {
     if (this.sessionId) {
       this.endSession()
     }
     this.startNewSession()
+  }
+
+  // Method to update the inactivity timeout at runtime
+  updateTimeout(timeoutMinutes: number): void {
+    this.inactivityTimeout = timeoutMinutes * 60 * 1000
+    // Reset the timer with the new timeout
+    this.resetInactivityTimer()
   }
 }

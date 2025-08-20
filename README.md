@@ -1,4 +1,3 @@
-````markdown
 [![Version](https://img.shields.io/github/v/release/HCL-CDP-TA/hclcdp-web-sdk)](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/releases)
 
 # HCL CDP Web SDK
@@ -330,4 +329,7 @@ For React applications, use the React wrapper:
 ## License
 
 This project is licensed under the MIT License.
-````
+
+```
+
+```

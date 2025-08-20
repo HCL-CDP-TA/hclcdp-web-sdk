@@ -20,38 +20,47 @@ export class CdpClient {
   private config: HclCdpConfig = { writeKey: "", cdpEndpoint: "", inactivityTimeout: 30, enableSessionLogging: false }
 
   private readonly CDP_STORAGE_KEY = "hclcdp_identity_data"
-  private readonly SESSION_ID = "hclcdp_session_id" // Keep session separate as it has different lifecycle
+  private readonly SESSION_ID = "hclcdp_session_id"
 
   constructor() {
-    console.log("🚨 CDPCLIENT CONSTRUCTOR CALLED 🚨")
     console.log("📦 SDK Version:", packageJson.version)
-    console.log("🕐 Constructor timestamp:", new Date().toISOString())
-    console.log("CdpClient constructor - starting ID initialization")
 
     // Load all identity data from single localStorage object
     const identityData = this.getStoredIdentityData()
 
     // Profile ID - persistent across sessions for the same person/profile
-    this.profileId = identityData.profileId || this.createProfileId()
-    console.log("Profile ID initialized:", this.profileId)
+    if (identityData.profileId) {
+      this.profileId = identityData.profileId
+      console.log("🔄 Profile ID loaded from storage:", this.profileId)
+    } else {
+      this.profileId = this.createProfileId()
+      console.log("✨ New Profile ID created:", this.profileId)
+    }
 
     // Device ID - persistent per device, different from profile ID
-    this.deviceId = identityData.deviceId || this.createDeviceId()
-    console.log("Device ID initialized:", this.deviceId)
+    if (identityData.deviceId) {
+      this.deviceId = identityData.deviceId
+      console.log("🔄 Device ID loaded from storage:", this.deviceId)
+    } else {
+      this.deviceId = this.createDeviceId()
+      console.log("✨ New Device ID created:", this.deviceId)
+    }
 
     // User ID - only set when user identifies themselves
     this.userId = identityData.userId || null
-    console.log("User ID initialized:", this.userId)
+    if (this.userId) {
+      console.log("🔄 User ID loaded from storage:", this.userId)
+    } else {
+      console.log("👤 No User ID set (anonymous user)")
+    }
 
     // Save the identity data back to localStorage
     this.saveIdentityData()
-
-    console.log("CdpClient constructor - ID initialization complete")
   }
 
   public init = async (config: HclCdpConfig): Promise<void> => {
     this.config = config
-    console.log("init", config)
+    console.log("CDP Initialisation initiated with config:", config)
     const agent: IResult = UAParser(window.navigator.userAgent)
 
     this.context = {

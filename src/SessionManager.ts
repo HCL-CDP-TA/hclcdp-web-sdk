@@ -45,8 +45,12 @@ export class SessionManager {
     // Check if the session is still valid
     if (sessionData && this.isSessionValid(sessionData)) {
       this.sessionId = sessionData.sessionId
+      console.log("🔄 Session ID loaded from storage:", this.sessionId)
       this.resetInactivityTimer()
     } else {
+      if (sessionData) {
+        console.log("⏰ Previous session expired, creating new session")
+      }
       this.startNewSession()
     }
   }
@@ -70,6 +74,7 @@ export class SessionManager {
 
   private startNewSession() {
     this.sessionId = this.generateSessionId()
+    console.log("✨ New Session ID created:", this.sessionId)
 
     const sessionData: SessionData = {
       sessionId: this.sessionId,

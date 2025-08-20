@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.2.0...v0.2.1) (2025-08-20)
+
+
+### Bug Fixes
+
+* logging improvements ([1030925](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/10309259732baaa2770cb8a1d6147922bb7c7482))
+
 ## [0.2.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.1.2...v0.2.0) (2025-08-15)
 
 

@@ -20,7 +20,8 @@ export class HclCdp {
     writeKey: "",
     cdpEndpoint: "",
     inactivityTimeout: 30,
-    enableSessionLogging: false,
+    enableDeviceSessionLogging: false,
+    enableUserSessionLogging: false,
     enableUserLogoutLogging: false,
   }
   private static destinations: DestinationConfig[] = []
@@ -45,7 +46,8 @@ export class HclCdp {
       writeKey: config.writeKey,
       cdpEndpoint: config.cdpEndpoint,
       inactivityTimeout: config.inactivityTimeout || 30,
-      enableSessionLogging: config.enableSessionLogging === true,
+      enableDeviceSessionLogging: config.enableDeviceSessionLogging === true || config.enableSessionLogging === true, // Backward compatibility
+      enableUserSessionLogging: config.enableUserSessionLogging === true,
       enableUserLogoutLogging: config.enableUserLogoutLogging === true,
       destinations: config.destinations || [],
     }
@@ -64,7 +66,13 @@ export class HclCdp {
       )
 
       // Initialize session manager AFTER everything else is ready
-      HclCdp.instance.sessionManager = new SessionManager(config, HclCdp.onSessionStart, HclCdp.onSessionEnd)
+      HclCdp.instance.sessionManager = new SessionManager(
+        config,
+        HclCdp.onDeviceSessionStart,
+        HclCdp.onDeviceSessionEnd,
+        HclCdp.onUserSessionStart,
+        HclCdp.onUserSessionEnd,
+      )
 
       // Attach the instance to the window object
       if (typeof window !== "undefined") {
@@ -90,7 +98,8 @@ export class HclCdp {
         const identityData = HclCdp.getIdentityData()
         callback(null, {
           deviceId: identityData?.deviceId || null,
-          sessionId: HclCdp.getSessionId() || null,
+          deviceSessionId: HclCdp.getDeviceSessionId() || null,
+          userSessionId: HclCdp.getUserSessionId() || null,
         })
       }
     } catch (error) {
@@ -100,15 +109,16 @@ export class HclCdp {
     }
   }
 
-  static onSessionStart = (sessionId: string) => {
-    if (this.config?.enableSessionLogging === true) {
+  static onDeviceSessionStart = (deviceSessionId: string, userSessionId: string) => {
+    if (this.config?.enableDeviceSessionLogging === true) {
       if (HclCdp.instance?.cdpClient) {
-        HclCdp.instance.cdpClient.track("Session_Start", sessionId)
+        HclCdp.instance.cdpClient.track("Device_Session_Start", deviceSessionId, userSessionId)
       } else {
-        // Queue the session start event
+        // Queue the device session start event
         EventQueue.addToQueue(EventQueue.TRACK_QUEUE_KEY, {
-          sessionId,
-          eventName: "Session_Start",
+          deviceSessionId,
+          userSessionId,
+          eventName: "Device_Session_Start",
           properties: {},
           otherIds: {},
         })
@@ -116,17 +126,43 @@ export class HclCdp {
     }
   }
 
-  static onSessionEnd = (sessionId: string) => {
-    if (this.config?.enableSessionLogging === true) {
+  static onDeviceSessionEnd = (deviceSessionId: string, userSessionId: string) => {
+    if (this.config?.enableDeviceSessionLogging === true) {
       if (HclCdp.instance?.cdpClient) {
-        HclCdp.instance.cdpClient.track("Session_End", sessionId)
+        HclCdp.instance.cdpClient.track("Device_Session_End", deviceSessionId, userSessionId)
+      }
+    }
+  }
+
+  static onUserSessionStart = (deviceSessionId: string, userSessionId: string) => {
+    if (this.config?.enableUserSessionLogging === true) {
+      if (HclCdp.instance?.cdpClient) {
+        HclCdp.instance.cdpClient.track("User_Session_Start", deviceSessionId, userSessionId)
+      } else {
+        // Queue the user session start event
+        EventQueue.addToQueue(EventQueue.TRACK_QUEUE_KEY, {
+          deviceSessionId,
+          userSessionId,
+          eventName: "User_Session_Start",
+          properties: {},
+          otherIds: {},
+        })
+      }
+    }
+  }
+
+  static onUserSessionEnd = (deviceSessionId: string, userSessionId: string) => {
+    if (this.config?.enableUserSessionLogging === true) {
+      if (HclCdp.instance?.cdpClient) {
+        HclCdp.instance.cdpClient.track("User_Session_End", deviceSessionId, userSessionId)
       }
     }
   }
 
   static page = async (pageName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
     const payload = {
-      sessionId: this.getSessionId(),
+      deviceSessionId: this.getDeviceSessionId(),
+      userSessionId: this.getUserSessionId(),
       pageName,
       properties: {
         ...properties,
@@ -153,7 +189,14 @@ export class HclCdp {
     const utmParams: Record<string, any> = this.parseUtmParameters(document.location.pathname)
 
     // If the SDK is initialized, send the event
-    HclCdp.instance.cdpClient.page(pageName, this.getSessionId(), payload.properties, utmParams, otherIds)
+    HclCdp.instance.cdpClient.page(
+      pageName,
+      this.getDeviceSessionId(),
+      this.getUserSessionId(),
+      payload.properties,
+      utmParams,
+      otherIds,
+    )
   }
 
   static track = async (eventName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
@@ -161,7 +204,8 @@ export class HclCdp {
       destination.instance.track({ event: eventName, properties })
     })
     const payload = {
-      sessionId: this.getSessionId(),
+      deviceSessionId: this.getDeviceSessionId(),
+      userSessionId: this.getUserSessionId(),
       eventName,
       properties,
       otherIds,
@@ -173,7 +217,7 @@ export class HclCdp {
     }
 
     // If the SDK is initialized, send the event
-    HclCdp.instance.cdpClient.track(eventName, this.getSessionId(), properties, otherIds)
+    HclCdp.instance.cdpClient.track(eventName, this.getDeviceSessionId(), this.getUserSessionId(), properties, otherIds)
   }
 
   static identify = async (userId: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
@@ -181,7 +225,8 @@ export class HclCdp {
       destination.instance.identify({ properties })
     })
     const payload = {
-      sessionId: this.getSessionId(),
+      deviceSessionId: this.getDeviceSessionId(),
+      userSessionId: this.getUserSessionId(),
       userId,
       properties,
       otherIds,
@@ -194,7 +239,21 @@ export class HclCdp {
     }
 
     // If the SDK is initialized, send the event
-    HclCdp.instance.cdpClient.identify(userId, this.getSessionId(), properties, otherIds)
+    HclCdp.instance.cdpClient.identify(userId, this.getDeviceSessionId(), this.getUserSessionId(), properties, otherIds)
+  }
+
+  static login = async (userId: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
+    if (!HclCdp.instance?.cdpClient) {
+      return
+    }
+
+    // Start a new user session for login
+    if (HclCdp.instance.sessionManager) {
+      HclCdp.instance.sessionManager.startNewUserSession()
+    }
+
+    // Use the login method from CdpClient which handles both identify and track
+    HclCdp.instance.cdpClient.login(userId, this.getDeviceSessionId(), this.getUserSessionId(), properties, otherIds)
   }
 
   static getIdentityData(): IdentityData | null {
@@ -212,12 +271,33 @@ export class HclCdp {
     return HclCdp.instance?.sessionManager?.getSessionId() || ""
   }
 
-  static setSessionLogging(enabled: boolean): void {
-    this.config.enableSessionLogging = enabled
+  static getDeviceSessionId(): string | "" {
+    return HclCdp.instance?.sessionManager?.getDeviceSessionId() || ""
+  }
+
+  static getUserSessionId(): string | "" {
+    return HclCdp.instance?.sessionManager?.getUserSessionId() || ""
+  }
+
+  static setDeviceSessionLogging(enabled: boolean): void {
+    this.config.enableDeviceSessionLogging = enabled
     // Also update CdpClient config if it exists
     if (HclCdp.instance?.cdpClient) {
-      HclCdp.instance.cdpClient.updateConfig({ enableSessionLogging: enabled })
+      HclCdp.instance.cdpClient.updateConfig({ enableDeviceSessionLogging: enabled })
     }
+  }
+
+  static setUserSessionLogging(enabled: boolean): void {
+    this.config.enableUserSessionLogging = enabled
+    // Also update CdpClient config if it exists
+    if (HclCdp.instance?.cdpClient) {
+      HclCdp.instance.cdpClient.updateConfig({ enableUserSessionLogging: enabled })
+    }
+  }
+
+  static setSessionLogging(enabled: boolean): void {
+    // Deprecated method - now sets device session logging for backward compatibility
+    this.setDeviceSessionLogging(enabled)
   }
 
   static setUserLogoutLogging(enabled: boolean): void {
@@ -251,15 +331,15 @@ export class HclCdp {
 
     // First track the logout event if enabled and clear user data
     if (this.config.enableUserLogoutLogging) {
-      HclCdp.instance.cdpClient.logout(this.getSessionId())
+      HclCdp.instance.cdpClient.logout(this.getDeviceSessionId(), this.getUserSessionId())
     } else {
       // Even if logging is disabled, we still need to clear user data
-      HclCdp.instance.cdpClient.logout(this.getSessionId())
+      HclCdp.instance.cdpClient.logout(this.getDeviceSessionId(), this.getUserSessionId())
     }
 
-    // Force start a new session after logout
+    // Start a new user session (but keep device session)
     if (HclCdp.instance.sessionManager) {
-      HclCdp.instance.sessionManager.forceNewSession()
+      HclCdp.instance.sessionManager.startNewUserSession()
     }
   }
 

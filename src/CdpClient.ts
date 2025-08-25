@@ -17,7 +17,14 @@ export class CdpClient {
   public deviceId: string // Persistent per device - never null after construction
   public userId: string | null = null // Only set when user identifies themselves
   private context: EventContext | null = null
-  private config: HclCdpConfig = { writeKey: "", cdpEndpoint: "", inactivityTimeout: 30, enableSessionLogging: false }
+  private config: HclCdpConfig = {
+    writeKey: "",
+    cdpEndpoint: "",
+    inactivityTimeout: 30,
+    enableDeviceSessionLogging: false,
+    enableUserSessionLogging: false,
+    enableUserLogoutLogging: false,
+  }
 
   private readonly CDP_STORAGE_KEY = "hclcdp_identity_data"
   private readonly SESSION_ID = "hclcdp_session_id"
@@ -85,7 +92,8 @@ export class CdpClient {
 
   public page = async (
     pageName: string,
-    sessionId: string,
+    deviceSessionId: string,
+    userSessionId: string,
     properties?: Record<string, any>,
     utmParams?: Record<string, any>,
     otherIds?: Record<string, any>,
@@ -93,6 +101,23 @@ export class CdpClient {
     if (this.context && utmParams) {
       this.context.utm = utmParams
     }
+
+    const contextWithSession: EventContext = this.context
+      ? {
+          ...this.context,
+          session: {
+            deviceSessionId,
+            userSessionId,
+          },
+        }
+      : {
+          library: { name: "", type: "" },
+          userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+          session: {
+            deviceSessionId,
+            userSessionId,
+          },
+        }
 
     const payload: EventPayload = {
       type: "page",
@@ -103,16 +128,12 @@ export class CdpClient {
       userId: this.userId || "",
       deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
-      sessionId,
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
       otherIds: {
         ...otherIds,
       },
-      context: this.context || {
-        library: { name: "", type: "" },
-        userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
-      },
+      context: contextWithSession,
       properties: {
         ...properties,
       },
@@ -123,7 +144,8 @@ export class CdpClient {
 
   public track = async (
     eventName: string,
-    sessionId: string,
+    deviceSessionId: string,
+    userSessionId: string,
     properties?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
@@ -137,6 +159,23 @@ export class CdpClient {
       }
     }
 
+    const contextWithSession: EventContext = this.context
+      ? {
+          ...this.context,
+          session: {
+            deviceSessionId,
+            userSessionId,
+          },
+        }
+      : {
+          library: { name: "", type: "" },
+          userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+          session: {
+            deviceSessionId,
+            userSessionId,
+          },
+        }
+
     const payload: EventPayload = {
       type: "track",
       event: eventName,
@@ -145,13 +184,12 @@ export class CdpClient {
       userId: this.userId || "",
       deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
-      sessionId,
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
       otherIds: {
         ...otherIds,
       },
-      context: this.context as EventContext,
+      context: contextWithSession,
       properties: {
         ...properties,
       },
@@ -163,11 +201,29 @@ export class CdpClient {
 
   public identify = async (
     userId: string,
-    sessionId: string,
+    deviceSessionId: string,
+    userSessionId: string,
     properties?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
     this.setUserId(userId)
+
+    const contextWithSession: EventContext = this.context
+      ? {
+          ...this.context,
+          session: {
+            deviceSessionId,
+            userSessionId,
+          },
+        }
+      : {
+          library: { name: "", type: "" },
+          userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+          session: {
+            deviceSessionId,
+            userSessionId,
+          },
+        }
 
     const payload: EventPayload = {
       type: "identify",
@@ -177,16 +233,12 @@ export class CdpClient {
       deviceId: this.deviceId,
       deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
-      sessionId,
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
       otherIds: {
         ...otherIds,
       },
-      context: this.context || {
-        library: { name: "", type: "" },
-        userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
-      },
+      context: contextWithSession,
       customerProperties: {
         ...properties,
       },
@@ -198,23 +250,24 @@ export class CdpClient {
 
   public login = async (
     userId: string,
-    sessionId: string,
+    deviceSessionId: string,
+    userSessionId: string,
     properties?: Record<string, any>,
     otherIds?: Record<string, any>,
     identifier: string = "User_login",
   ): Promise<void> => {
     console.log("Logging in user", this.userId)
-    this.identify(userId, sessionId, properties, otherIds)
+    this.identify(userId, deviceSessionId, userSessionId, properties, otherIds)
     if (this.config.enableUserLogoutLogging) {
-      this.track(identifier, sessionId, properties, otherIds)
+      this.track(identifier, deviceSessionId, userSessionId, properties, otherIds)
     }
     this.setUserId(userId)
   }
 
-  public logout = async (sessionId: string): Promise<void> => {
+  public logout = async (deviceSessionId: string, userSessionId: string): Promise<void> => {
     // Track logout event if logging is enabled
     if (this.config.enableUserLogoutLogging) {
-      this.track("User_logout", sessionId)
+      this.track("User_logout", deviceSessionId, userSessionId)
     }
 
     // Always remove user data regardless of logging setting
@@ -296,6 +349,8 @@ export class CdpClient {
   }
 
   private sendPayload = async (payload: EventPayload): Promise<void> => {
+    console.log("🚀 Sending payload with session context:", JSON.stringify(payload, null, 2))
+
     const xhr: XMLHttpRequest = new XMLHttpRequest()
 
     xhr.open(

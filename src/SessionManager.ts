@@ -2,36 +2,53 @@ import { v4 as uuidv4 } from "uuid"
 import { HclCdpConfig } from "./types"
 
 interface SessionData {
-  sessionId: string
+  deviceSessionId: string
+  userSessionId: string
   lastActivityTimestamp: number // Timestamp of the last user activity
-  sessionStartTimestamp: number // Timestamp when the session started
+  sessionStartTimestamp: number // Timestamp when the device session started
+  userSessionStartTimestamp: number // Timestamp when the user session started
 }
 
 export class SessionManager {
-  private sessionId: string | null = null
+  private deviceSessionId: string | null = null
+  private userSessionId: string | null = null
   private inactivityTimeout: number
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null
   private readonly SESSION_DATA = "hclcdp_session"
-  private onSessionStart: (sessionId: string) => void
-  private onSessionEnd: (sessionId: string) => void
+  private onDeviceSessionStart: (deviceSessionId: string, userSessionId: string) => void
+  private onDeviceSessionEnd: (deviceSessionId: string, userSessionId: string) => void
+  private onUserSessionStart: (deviceSessionId: string, userSessionId: string) => void
+  private onUserSessionEnd: (deviceSessionId: string, userSessionId: string) => void
 
   constructor(
     config: HclCdpConfig,
-    onSessionStart?: (sessionId: string) => void,
-    onSessionEnd?: (sessionId: string) => void,
+    onDeviceSessionStart?: (deviceSessionId: string, userSessionId: string) => void,
+    onDeviceSessionEnd?: (deviceSessionId: string, userSessionId: string) => void,
+    onUserSessionStart?: (deviceSessionId: string, userSessionId: string) => void,
+    onUserSessionEnd?: (deviceSessionId: string, userSessionId: string) => void,
   ) {
     this.inactivityTimeout = (config.inactivityTimeout || 30) * 60 * 1000
 
     // Provide default implementations if callbacks are not provided
-    this.onSessionStart =
-      onSessionStart ||
-      ((sessionId: string) => {
-        console.log(`Default: Session started with ID: ${sessionId}`)
+    this.onDeviceSessionStart =
+      onDeviceSessionStart ||
+      ((deviceSessionId: string, userSessionId: string) => {
+        console.log(`Default: Device session started - Device: ${deviceSessionId}, User: ${userSessionId}`)
       })
-    this.onSessionEnd =
-      onSessionEnd ||
-      ((sessionId: string) => {
-        console.log(`Default: Session ended with ID: ${sessionId}`)
+    this.onDeviceSessionEnd =
+      onDeviceSessionEnd ||
+      ((deviceSessionId: string, userSessionId: string) => {
+        console.log(`Default: Device session ended - Device: ${deviceSessionId}, User: ${userSessionId}`)
+      })
+    this.onUserSessionStart =
+      onUserSessionStart ||
+      ((deviceSessionId: string, userSessionId: string) => {
+        console.log(`Default: User session started - Device: ${deviceSessionId}, User: ${userSessionId}`)
+      })
+    this.onUserSessionEnd =
+      onUserSessionEnd ||
+      ((deviceSessionId: string, userSessionId: string) => {
+        console.log(`Default: User session ended - Device: ${deviceSessionId}, User: ${userSessionId}`)
       })
 
     this.initializeSession()
@@ -44,8 +61,10 @@ export class SessionManager {
 
     // Check if the session is still valid
     if (sessionData && this.isSessionValid(sessionData)) {
-      this.sessionId = sessionData.sessionId
-      console.log("🔄 Session ID loaded from storage:", this.sessionId)
+      this.deviceSessionId = sessionData.deviceSessionId
+      this.userSessionId = sessionData.userSessionId
+      console.log("🔄 Device Session ID loaded from storage:", this.deviceSessionId)
+      console.log("🔄 User Session ID loaded from storage:", this.userSessionId)
       this.resetInactivityTimer()
     } else {
       if (sessionData) {
@@ -73,18 +92,23 @@ export class SessionManager {
   }
 
   private startNewSession() {
-    this.sessionId = this.generateSessionId()
-    console.log("✨ New Session ID created:", this.sessionId)
+    this.deviceSessionId = this.generateSessionId()
+    this.userSessionId = this.generateSessionId()
+    console.log("✨ New Device Session ID created:", this.deviceSessionId)
+    console.log("✨ New User Session ID created:", this.userSessionId)
 
     const sessionData: SessionData = {
-      sessionId: this.sessionId,
+      deviceSessionId: this.deviceSessionId,
+      userSessionId: this.userSessionId,
       lastActivityTimestamp: Date.now(),
       sessionStartTimestamp: Date.now(),
+      userSessionStartTimestamp: Date.now(),
     }
     this.saveSessionData(sessionData)
     this.resetInactivityTimer()
 
-    this.onSessionStart(this.sessionId)
+    this.onDeviceSessionStart(this.deviceSessionId, this.userSessionId)
+    this.onUserSessionStart(this.deviceSessionId, this.userSessionId)
   }
   private resetInactivityTimer() {
     if (this.inactivityTimer) {
@@ -104,11 +128,15 @@ export class SessionManager {
   }
 
   private endSession() {
+    console.log("🔚 Device Session ended:", this.deviceSessionId)
+    console.log("🔚 User Session ended:", this.userSessionId)
     sessionStorage.removeItem(this.SESSION_DATA)
-    if (this.sessionId) {
-      this.onSessionEnd(this.sessionId)
+    if (this.deviceSessionId && this.userSessionId) {
+      this.onDeviceSessionEnd(this.deviceSessionId, this.userSessionId)
+      this.onUserSessionEnd(this.deviceSessionId, this.userSessionId)
     }
-    this.sessionId = null
+    this.deviceSessionId = null
+    this.userSessionId = null
   }
 
   private setupActivityListeners() {
@@ -119,7 +147,15 @@ export class SessionManager {
   }
 
   getSessionId(): string | null {
-    return this.sessionId
+    return this.deviceSessionId // For backward compatibility, return device session
+  }
+
+  getDeviceSessionId(): string | null {
+    return this.deviceSessionId
+  }
+
+  getUserSessionId(): string | null {
+    return this.userSessionId
   }
 
   // Get full session data including timestamps
@@ -127,9 +163,31 @@ export class SessionManager {
     return this.getSessionData()
   }
 
+  // Method to start a new user session (for login/logout)
+  startNewUserSession(): void {
+    const oldUserSessionId = this.userSessionId
+    this.userSessionId = this.generateSessionId()
+    console.log("✨ New User Session ID created:", this.userSessionId)
+
+    const sessionData = this.getSessionData()
+    if (sessionData && this.deviceSessionId) {
+      // End the previous user session if it existed
+      if (oldUserSessionId) {
+        this.onUserSessionEnd(this.deviceSessionId, oldUserSessionId)
+      }
+
+      sessionData.userSessionId = this.userSessionId
+      sessionData.userSessionStartTimestamp = Date.now()
+      this.saveSessionData(sessionData)
+
+      // Start the new user session
+      this.onUserSessionStart(this.deviceSessionId, this.userSessionId)
+    }
+  }
+
   // Method to force end the current session and start a new one
   forceNewSession(): void {
-    if (this.sessionId) {
+    if (this.deviceSessionId && this.userSessionId) {
       this.endSession()
     }
     this.startNewSession()

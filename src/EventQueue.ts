@@ -24,13 +24,32 @@ class EventQueue {
       try {
         switch (queueKey) {
           case EventQueue.PAGE_QUEUE_KEY:
-            method(payload.pageName, payload.properties, payload.otherIds)
+            method(
+              payload.pageName,
+              payload.deviceSessionId || "",
+              payload.userSessionId || "",
+              payload.properties,
+              payload.utmParams,
+              payload.otherIds,
+            )
             break
           case EventQueue.TRACK_QUEUE_KEY:
-            method(payload.eventName, payload.properties, payload.otherIds)
+            method(
+              payload.eventName,
+              payload.deviceSessionId || "",
+              payload.userSessionId || "",
+              payload.properties,
+              payload.otherIds,
+            )
             break
           case EventQueue.IDENTIFY_QUEUE_KEY:
-            method(payload.userId, payload.properties, payload.otherIds)
+            method(
+              payload.userId,
+              payload.deviceSessionId || "",
+              payload.userSessionId || "",
+              payload.properties,
+              payload.otherIds,
+            )
             break
         }
       } catch (error) {

@@ -15,9 +15,13 @@ export interface HclCdpConfig {
    */
   inactivityTimeout?: number
   /**
-   * Send track events for session start and end events. Defaults to false. (Optional)
+   * Send track events for device session start and end events. Defaults to false. (Optional)
    */
-  enableSessionLogging?: boolean
+  enableDeviceSessionLogging?: boolean
+  /**
+   * Send track events for user session start and end events. Defaults to false. (Optional)
+   */
+  enableUserSessionLogging?: boolean
   /**
    * Send track events for User Login and Logout Events. (Optional)
    */
@@ -26,16 +30,23 @@ export interface HclCdpConfig {
    * Destinations (Optional)
    */
   destinations?: DestinationConfig[]
+  /**
+   * @deprecated Use enableDeviceSessionLogging instead
+   */
+  enableSessionLogging?: boolean
 }
 export interface SessionData {
-  sessionId: string | null
+  deviceSessionId: string | null
+  userSessionId: string | null
   deviceId: string | null
 }
 
 export interface FullSessionData {
-  sessionId: string
+  deviceSessionId: string
+  userSessionId: string
   lastActivityTimestamp: number
   sessionStartTimestamp: number
+  userSessionStartTimestamp: number
 }
 
 export interface IdentityData {
@@ -51,7 +62,6 @@ export interface EventPayload {
   userId: string
   id: string // This will be the profileId
   deviceId: string
-  sessionId: string
   originalTimestamp: number
   messageId: string
   writeKey: string
@@ -74,6 +84,10 @@ export interface EventContext {
     osVersion: string
     browser: string
     ua: string
+  }
+  session: {
+    deviceSessionId: string
+    userSessionId: string
   }
   page?: {
     path: string

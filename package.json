@@ -1,6 +1,6 @@
 {
   "name": "@hcl-cdp-ta/hclcdp-web-sdk",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "HCL CDP Web SDK",
   "keywords": [
     "HCLCDP"

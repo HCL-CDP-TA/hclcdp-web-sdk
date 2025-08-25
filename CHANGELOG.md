@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.2.1...v1.0.0) (2025-08-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace sessionId with userSessionId & deviceSessionId
+
+### Features
+
+* replace sessionId with userSessionId & deviceSessionId ([8786e18](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/8786e184e6dac9116c813bbccaa326884b6899ac))
+
+
+### Bug Fixes
+
+* build changes ([56ea5ec](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/56ea5ec28e5297574c5c820fa92e5469dcbd4eed))
+
 ## [0.2.2](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.2.1...v0.2.2) (2025-08-20)
 
 

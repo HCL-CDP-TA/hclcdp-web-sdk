@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.0.0...v1.0.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* fix aut-cookie collection for fb/ga etc ([5e72726](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/5e72726ab565f11385a9cf46484fcf6d68e77794))
+
 ## [1.0.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v0.2.1...v1.0.0) (2025-08-25)
 
 

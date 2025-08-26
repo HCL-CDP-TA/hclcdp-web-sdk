@@ -17,6 +17,7 @@ export class CdpClient {
   public deviceId: string // Persistent per device - never null after construction
   public userId: string | null = null // Only set when user identifies themselves
   private context: EventContext | null = null
+  private commonIds: Record<string, string> = {} // Common tracking cookies like _ga, _fbp, etc.
   private config: HclCdpConfig = {
     writeKey: "",
     cdpEndpoint: "",
@@ -70,6 +71,7 @@ export class CdpClient {
     console.log("CDP Initialisation initiated with config:", config)
     const agent: IResult = UAParser(window.navigator.userAgent)
 
+    // Initialize base context (session will be added per event)
     this.context = {
       library: {
         name: packageJson.name,
@@ -83,7 +85,15 @@ export class CdpClient {
         browser: agent.browser.name || "",
         ua: agent.ua,
       },
+      // session will be added when creating events
+      session: {
+        deviceSessionId: "",
+        userSessionId: "",
+      },
     }
+
+    // Collect common tracking cookies and store them
+    this.collectCommonCookies()
   }
 
   public updateConfig(configUpdates: Partial<HclCdpConfig>): void {
@@ -130,9 +140,7 @@ export class CdpClient {
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
-      otherIds: {
-        ...otherIds,
-      },
+      otherIds: this.mergeOtherIds(otherIds),
       context: contextWithSession,
       properties: {
         ...properties,
@@ -186,9 +194,7 @@ export class CdpClient {
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
-      otherIds: {
-        ...otherIds,
-      },
+      otherIds: this.mergeOtherIds(otherIds),
       context: contextWithSession,
       properties: {
         ...properties,
@@ -235,9 +241,7 @@ export class CdpClient {
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
-      otherIds: {
-        ...otherIds,
-      },
+      otherIds: this.mergeOtherIds(otherIds),
       context: contextWithSession,
       customerProperties: {
         ...properties,
@@ -375,5 +379,48 @@ export class CdpClient {
     }
 
     xhr.send(JSON.stringify(payload))
+  }
+
+  private collectCommonCookies = (): void => {
+    const cookiesToCheck = ["_ga", "_fbc", "_fbp", "mcmid"]
+    cookiesToCheck.forEach(cookieName => {
+      const cookieValue = this.getCookie(cookieName)
+      if (cookieValue) {
+        this.commonIds[cookieName] = cookieValue
+      }
+    })
+  }
+
+  private getCookie = (name: string): string => {
+    if (typeof document === "undefined") return ""
+
+    // Method 1: Standard approach
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) {
+      return parts.pop()?.split(";").shift() ?? ""
+    }
+
+    // Method 2: Alternative approach using regex
+    const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"))
+    if (match) {
+      return match[2]
+    }
+
+    return ""
+  }
+
+  private mergeOtherIds = (otherIds?: Record<string, any>): Record<string, any> => {
+    // Refresh cookies every time we send an event (in case they were set later)
+    this.collectCommonCookies()
+
+    return {
+      ...this.commonIds,
+      ...otherIds,
+    }
+  }
+
+  public refreshCommonCookies = (): void => {
+    this.collectCommonCookies()
   }
 }

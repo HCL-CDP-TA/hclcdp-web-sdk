@@ -83,16 +83,6 @@ export class HclCdp {
         }
       }
 
-      const commonIds: Record<string, string> = {}
-
-      const cookiesToCheck = ["_ga", "_fbc", "_fbp", "mcmid"]
-      cookiesToCheck.forEach(cookieName => {
-        const cookieValue = this.getCookie(cookieName)
-        if (cookieValue) {
-          commonIds[cookieName] = cookieValue
-        }
-      })
-
       // Call the callback with the deviceId
       if (callback) {
         const identityData = HclCdp.getIdentityData()
@@ -369,5 +359,11 @@ export class HclCdp {
       return parts.pop()?.split(";").shift() ?? ""
     }
     return ""
+  }
+
+  static refreshCommonCookies = (): void => {
+    if (HclCdp.instance?.cdpClient) {
+      HclCdp.instance.cdpClient.refreshCommonCookies()
+    }
   }
 }

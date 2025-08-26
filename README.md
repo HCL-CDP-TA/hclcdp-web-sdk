@@ -9,7 +9,7 @@ A comprehensive JavaScript SDK for integrating with the HCL Customer Data Platfo
 - **Simple API**: Streamlined interface with only essential methods
 - **Runtime Configuration**: Dynamically adjust settings without reinitializing
 - **Dual Module Support**: Works with both CommonJS and ES modules
-- **Session Management**: Automatic session tracking with configurable timeouts
+- **Dual Session Management**: Separate device and user session tracking with configurable timeouts
 - **Identity Management**: Separate device ID and profile ID management
 - **Event Queuing**: Automatic event queuing before SDK initialization
 - **Destination Routing**: Built-in support for Google Analytics 4 and Facebook Pixel
@@ -35,7 +35,8 @@ const config = {
   writeKey: "your-write-key",
   cdpEndpoint: "https://your-cdp-endpoint.com",
   inactivityTimeout: 30, // Session timeout in minutes
-  enableSessionLogging: true, // Track session start/end events
+  enableDeviceSessionLogging: true, // Track device session start/end events
+  enableUserSessionLogging: true, // Track user session start/end events
   enableUserLogoutLogging: true, // Track user logout events
   destinations: [
     {
@@ -57,7 +58,7 @@ await HclCdp.init(config, (error, sessionData) => {
     console.error("CDP initialization failed:", error)
   } else {
     console.log("CDP initialized:", sessionData)
-    // { sessionId: "...", deviceId: "..." }
+    // { deviceSessionId: "...", userSessionId: "...", deviceId: "..." }
   }
 })
 
@@ -86,6 +87,32 @@ HclCdp.logout()
 ```
 
 ## Core API Methods
+
+### Automatic Cookie Collection
+
+The SDK automatically collects common tracking cookies and includes them in the `otherIds` section of all events:
+
+- **`_ga`** - Google Analytics client ID
+- **`_fbc`** - Facebook Click ID
+- **`_fbp`** - Facebook Browser ID
+- **`mcmid`** - Adobe Marketing Cloud ID
+
+These cookies are automatically merged with any manually provided `otherIds`, with manual values taking precedence over automatically collected ones.
+
+```javascript
+// Even with empty otherIds, automatic cookies are included
+HclCdp.track("Purchase", { value: 99.99 }, {})
+
+// Manual otherIds are merged with automatic cookies
+HclCdp.track("Purchase", { value: 99.99 }, { custom_id: "abc123" })
+
+// Final payload otherIds will contain:
+// {
+//   "_ga": "GA1.1.123456789.1640995200",
+//   "_fbp": "fb.1.1640995200.123456789",
+//   "custom_id": "abc123"
+// }
+```
 
 ### Event Tracking Methods
 
@@ -119,7 +146,7 @@ HclCdp.page("Home", {
 
 #### `HclCdp.identify(userId, properties?, otherIds?)`
 
-Associate events with specific users and update user profiles.
+Associate events with specific users and update user profiles. **Does not create a new user session** - keeps existing session IDs.
 
 ```javascript
 HclCdp.identify("user-456", {
@@ -129,13 +156,40 @@ HclCdp.identify("user-456", {
 })
 ```
 
+#### `HclCdp.login(userId, properties?, otherIds?)`
+
+Start a new user session and identify the user (combines identify + new user session). **Creates a new user session ID** while preserving the device session.
+
+```javascript
+HclCdp.login("user-789", {
+  email: "user@example.com",
+  login_method: "social",
+})
+```
+
 #### `HclCdp.logout()`
 
-Clear user identity and start a fresh session.
+Clear user identity and start a new user session (device session continues).
 
 ```javascript
 HclCdp.logout()
 ```
+
+### When to Use identify() vs login()
+
+**Use `identify()` when:**
+
+- User updates their profile information
+- You want to associate events with a user without changing sessions
+- Tracking user behavior within the same session
+- User hasn't actually "logged in" but you know who they are (e.g., from cookies)
+
+**Use `login()` when:**
+
+- User enters credentials and authenticates
+- Starting a fresh user session after login
+- You want session analytics to reflect authentication events
+- User switches between accounts
 
 ### Data Access Methods
 
@@ -154,28 +208,65 @@ const identity = HclCdp.getIdentityData()
 
 #### `HclCdp.getSessionData()`
 
-Get current session information with timestamps.
+Get current session information with timestamps for both device and user sessions.
 
 ```javascript
 const session = HclCdp.getSessionData()
 // {
-//   sessionId: "sess_def456",
+//   deviceSessionId: "dev_sess_abc123",
+//   userSessionId: "user_sess_def456",
 //   sessionStartTimestamp: 1640995200000,
+//   userSessionStartTimestamp: 1640996100000,
 //   lastActivityTimestamp: 1640998800000
 // }
+```
+
+#### `HclCdp.getDeviceSessionId()`
+
+Get the current device session ID (persists across login/logout).
+
+```javascript
+const deviceSessionId = HclCdp.getDeviceSessionId()
+// "dev_sess_abc123"
+```
+
+#### `HclCdp.getUserSessionId()`
+
+Get the current user session ID (changes on login/logout).
+
+```javascript
+const userSessionId = HclCdp.getUserSessionId()
+// "user_sess_def456"
 ```
 
 ## Runtime Configuration
 
 Dynamically adjust SDK behavior without reinitialization:
 
-### `HclCdp.setSessionLogging(enabled)`
+### `HclCdp.setDeviceSessionLogging(enabled)`
 
-Enable or disable automatic session start/end event tracking.
+Enable or disable automatic device session start/end event tracking.
 
 ```javascript
-HclCdp.setSessionLogging(true) // Start tracking sessions
-HclCdp.setSessionLogging(false) // Stop tracking sessions
+HclCdp.setDeviceSessionLogging(true) // Track device sessions
+HclCdp.setDeviceSessionLogging(false) // Stop tracking device sessions
+```
+
+### `HclCdp.setUserSessionLogging(enabled)`
+
+Enable or disable automatic user session start/end event tracking.
+
+```javascript
+HclCdp.setUserSessionLogging(true) // Track user sessions
+HclCdp.setUserSessionLogging(false) // Stop tracking user sessions
+```
+
+### `HclCdp.setSessionLogging(enabled)` _(deprecated)_
+
+Enable or disable device session tracking (maintained for backward compatibility).
+
+```javascript
+HclCdp.setSessionLogging(true) // Same as setDeviceSessionLogging(true)
 ```
 
 ### `HclCdp.setUserLogoutLogging(enabled)`
@@ -206,21 +297,24 @@ const config = HclCdp.getConfig()
 //   writeKey: "...",
 //   cdpEndpoint: "...",
 //   inactivityTimeout: 30,
-//   enableSessionLogging: true,
+//   enableDeviceSessionLogging: true,
+//   enableUserSessionLogging: true,
 //   enableUserLogoutLogging: false
 // }
 ```
 
 ## Configuration Options
 
-| Option                    | Type    | Default    | Description                            |
-| ------------------------- | ------- | ---------- | -------------------------------------- |
-| `writeKey`                | string  | _required_ | Your CDP source write key              |
-| `cdpEndpoint`             | string  | _required_ | Your CDP instance endpoint URL         |
-| `inactivityTimeout`       | number  | 30         | Session timeout in minutes             |
-| `enableSessionLogging`    | boolean | false      | Track session start/end events         |
-| `enableUserLogoutLogging` | boolean | false      | Track user logout events               |
-| `destinations`            | array   | []         | Third-party destination configurations |
+| Option                       | Type    | Default    | Description                                   |
+| ---------------------------- | ------- | ---------- | --------------------------------------------- |
+| `writeKey`                   | string  | _required_ | Your CDP source write key                     |
+| `cdpEndpoint`                | string  | _required_ | Your CDP instance endpoint URL                |
+| `inactivityTimeout`          | number  | 30         | Session timeout in minutes                    |
+| `enableDeviceSessionLogging` | boolean | false      | Track device session start/end events         |
+| `enableUserSessionLogging`   | boolean | false      | Track user session start/end events           |
+| `enableUserLogoutLogging`    | boolean | false      | Track user logout events                      |
+| `destinations`               | array   | []         | Third-party destination configurations        |
+| `enableSessionLogging`       | boolean | false      | _(deprecated)_ Use enableDeviceSessionLogging |
 
 ## Destinations
 
@@ -265,12 +359,86 @@ const config: HclCdpConfig = {
   writeKey: "your-key",
   cdpEndpoint: "https://your-endpoint.com",
   inactivityTimeout: 45,
-  enableSessionLogging: true,
+  enableDeviceSessionLogging: true,
+  enableUserSessionLogging: true,
 }
 
 const identity: IdentityData | null = HclCdp.getIdentityData()
 const session: FullSessionData | null = HclCdp.getSessionData()
 ```
+
+## Breaking Changes in v1.0.0
+
+### Dual Session Architecture
+
+Version 1.0.0 introduces a **breaking change** with dual session management:
+
+- **Device Session ID**: Persists across login/logout events (device-level tracking)
+- **User Session ID**: Changes on each login/logout event (user-level tracking)
+
+#### Event Payload Changes
+
+Session IDs are now nested under `context.session` instead of being root-level properties:
+
+**Before (v0.x):**
+
+```json
+{
+  "type": "track",
+  "event": "purchase",
+  "sessionId": "abc123",
+  "context": { ... }
+}
+```
+
+**After (v1.0.0):**
+
+```json
+{
+  "type": "track",
+  "event": "purchase",
+  "context": {
+    "session": {
+      "deviceSessionId": "abc123",
+      "userSessionId": "def456"
+    }
+  }
+}
+```
+
+#### Configuration Changes
+
+- `enableSessionLogging` → `enableDeviceSessionLogging` (with backward compatibility)
+- Added `enableUserSessionLogging` for separate user session event control
+
+#### Migration Guide
+
+1. **Update configuration** (optional, backward compatible):
+
+   ```javascript
+   // Old
+   enableSessionLogging: true
+
+   // New (both work)
+   enableDeviceSessionLogging: true,
+   enableUserSessionLogging: true
+   ```
+
+2. **Update event payload parsing** if you process CDP events:
+
+   - Session IDs moved from root to `context.session`
+   - Two session IDs instead of one
+
+3. **Update session data access**:
+
+   ```javascript
+   // Old
+   const sessionId = HclCdp.getSessionId()
+
+   // New
+   const deviceSessionId = HclCdp.getDeviceSessionId()
+   const userSessionId = HclCdp.getUserSessionId()
+   ```
 
 ## Advanced Usage
 

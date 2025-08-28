@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.0.1...v1.1.0) (2025-08-28)
+
+
+### Features
+
+* improved session management with new callbacks for session end ([7bfe598](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/7bfe59889678abc1112d54eef8b8378147eebbfe))
+
 ## [1.0.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.0.0...v1.0.1) (2025-08-26)
 
 

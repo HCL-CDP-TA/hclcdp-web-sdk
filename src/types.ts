@@ -27,6 +27,22 @@ export interface HclCdpConfig {
    */
   enableUserLogoutLogging?: boolean
   /**
+   * Callback function called when a device session ends due to inactivity timeout. (Optional)
+   */
+  onDeviceSessionEnd?: (sessionData: {
+    deviceSessionId: string
+    userSessionId: string
+    reason: "timeout" | "logout"
+  }) => void
+  /**
+   * Callback function called when a user session ends due to login, logout, or timeout. (Optional)
+   */
+  onUserSessionEnd?: (sessionData: {
+    deviceSessionId: string
+    userSessionId: string
+    reason: "login" | "logout" | "timeout"
+  }) => void
+  /**
    * Destinations (Optional)
    */
   destinations?: DestinationConfig[]

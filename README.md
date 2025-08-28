@@ -86,6 +86,54 @@ HclCdp.identify("user-123", {
 HclCdp.logout()
 ```
 
+## Session End Callbacks
+
+You can listen for session ending events by providing callback functions in the configuration:
+
+```javascript
+const config = {
+  writeKey: "your-write-key",
+  cdpEndpoint: "https://your-cdp-endpoint.com",
+
+  // Called when a device session ends (due to inactivity timeout)
+  onDeviceSessionEnd: sessionData => {
+    console.log("Device session ended:", sessionData)
+    // { deviceSessionId: "dev_123", userSessionId: "user_456", reason: "timeout" }
+
+    // Take action when user session expires
+    // e.g., show session timeout notification, redirect to login
+  },
+
+  // Called when a user session ends (login, logout, or timeout)
+  onUserSessionEnd: sessionData => {
+    console.log("User session ended:", sessionData)
+    // { deviceSessionId: "dev_123", userSessionId: "user_456", reason: "login" | "logout" | "timeout" }
+
+    switch (sessionData.reason) {
+      case "timeout":
+        // Handle session timeout
+        showSessionTimeoutNotification()
+        break
+      case "login":
+        // Previous session ended due to new login
+        break
+      case "logout":
+        // Session ended due to explicit logout
+        redirectToHomePage()
+        break
+    }
+  },
+}
+
+await HclCdp.init(config)
+```
+
+### Session End Reasons
+
+- **`timeout`**: Session ended due to inactivity timeout
+- **`login`**: User session ended because user logged in (starts new user session)
+- **`logout`**: User session ended because user logged out
+
 ## Core API Methods
 
 ### Automatic Cookie Collection

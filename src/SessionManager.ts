@@ -15,6 +15,7 @@ export class SessionManager {
   private inactivityTimeout: number
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null
   private readonly SESSION_DATA = "hclcdp_session"
+  private config: HclCdpConfig
   private onDeviceSessionStart: (deviceSessionId: string, userSessionId: string) => void
   private onDeviceSessionEnd: (deviceSessionId: string, userSessionId: string) => void
   private onUserSessionStart: (deviceSessionId: string, userSessionId: string) => void
@@ -27,6 +28,7 @@ export class SessionManager {
     onUserSessionStart?: (deviceSessionId: string, userSessionId: string) => void,
     onUserSessionEnd?: (deviceSessionId: string, userSessionId: string) => void,
   ) {
+    this.config = config
     this.inactivityTimeout = (config.inactivityTimeout || 30) * 60 * 1000
 
     // Provide default implementations if callbacks are not provided
@@ -132,11 +134,55 @@ export class SessionManager {
     console.log("🔚 User Session ended:", this.userSessionId)
     sessionStorage.removeItem(this.SESSION_DATA)
     if (this.deviceSessionId && this.userSessionId) {
+      // Call internal SDK callbacks
       this.onDeviceSessionEnd(this.deviceSessionId, this.userSessionId)
       this.onUserSessionEnd(this.deviceSessionId, this.userSessionId)
+
+      // Call user-provided callbacks for timeout
+      if (this.config.onDeviceSessionEnd) {
+        this.config.onDeviceSessionEnd({
+          deviceSessionId: this.deviceSessionId,
+          userSessionId: this.userSessionId,
+          reason: "timeout",
+        })
+      }
+      if (this.config.onUserSessionEnd) {
+        this.config.onUserSessionEnd({
+          deviceSessionId: this.deviceSessionId,
+          userSessionId: this.userSessionId,
+          reason: "timeout",
+        })
+      }
+
+      // Call hook callbacks
+      this.callHookCallbacks("timeout")
     }
     this.deviceSessionId = null
     this.userSessionId = null
+  }
+
+  private callHookCallbacks(reason: "timeout" | "login" | "logout") {
+    if (typeof window !== "undefined" && (window as any).HclCdp?.instance?._hookCallbacks) {
+      const hookCallbacks = (window as any).HclCdp.instance._hookCallbacks
+      const sessionData = {
+        deviceSessionId: this.deviceSessionId || "",
+        userSessionId: this.userSessionId || "",
+        reason,
+      }
+
+      hookCallbacks.forEach((callback: any) => {
+        try {
+          if (callback.onDeviceSessionEnd) {
+            callback.onDeviceSessionEnd(sessionData)
+          }
+          if (callback.onUserSessionEnd) {
+            callback.onUserSessionEnd(sessionData)
+          }
+        } catch (error) {
+          console.error("Error calling hook callback:", error)
+        }
+      })
+    }
   }
 
   private setupActivityListeners() {
@@ -173,7 +219,20 @@ export class SessionManager {
     if (sessionData && this.deviceSessionId) {
       // End the previous user session if it existed
       if (oldUserSessionId) {
+        // Call internal SDK callback
         this.onUserSessionEnd(this.deviceSessionId, oldUserSessionId)
+
+        // Call user-provided callback for login (which ends previous session)
+        if (this.config.onUserSessionEnd) {
+          this.config.onUserSessionEnd({
+            deviceSessionId: this.deviceSessionId,
+            userSessionId: oldUserSessionId,
+            reason: "login",
+          })
+        }
+
+        // Call hook callbacks for login
+        this.callHookCallbacks("login")
       }
 
       sessionData.userSessionId = this.userSessionId
@@ -198,5 +257,32 @@ export class SessionManager {
     this.inactivityTimeout = timeoutMinutes * 60 * 1000
     // Reset the timer with the new timeout
     this.resetInactivityTimer()
+  }
+
+  // Method to handle user logout (ends user session but keeps device session)
+  logout(): void {
+    if (this.deviceSessionId && this.userSessionId) {
+      const currentUserSessionId = this.userSessionId
+
+      // Call user-provided callback for logout
+      if (this.config.onUserSessionEnd) {
+        this.config.onUserSessionEnd({
+          deviceSessionId: this.deviceSessionId,
+          userSessionId: currentUserSessionId,
+          reason: "logout",
+        })
+      }
+
+      // Call hook callbacks for logout
+      this.callHookCallbacks("logout")
+
+      // Start a new user session (this will internally call onUserSessionEnd for the old session)
+      this.startNewUserSession()
+    }
+  }
+
+  updateConfig(newConfig: HclCdpConfig): void {
+    this.config = newConfig
+    this.inactivityTimeout = (newConfig.inactivityTimeout || 30) * 60 * 1000
   }
 }

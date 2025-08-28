@@ -327,9 +327,9 @@ export class HclCdp {
       HclCdp.instance.cdpClient.logout(this.getDeviceSessionId(), this.getUserSessionId())
     }
 
-    // Start a new user session (but keep device session)
+    // Use the SessionManager logout method which handles callbacks
     if (HclCdp.instance.sessionManager) {
-      HclCdp.instance.sessionManager.startNewUserSession()
+      HclCdp.instance.sessionManager.logout()
     }
   }
 

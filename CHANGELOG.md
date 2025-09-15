@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.0...v1.1.1) (2025-09-15)
+
+
+### Bug Fixes
+
+* event logging chagned to json object, not stringified version ([b1afaa7](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/b1afaa7501879e61e09c24f427a203fe880c531f))
+
 ## [1.1.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.0.1...v1.1.0) (2025-08-28)
 
 

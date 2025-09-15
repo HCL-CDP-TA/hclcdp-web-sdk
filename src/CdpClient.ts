@@ -353,7 +353,7 @@ export class CdpClient {
   }
 
   private sendPayload = async (payload: EventPayload): Promise<void> => {
-    console.log("🚀 Sending payload with session context:", JSON.stringify(payload, null, 2))
+    console.log("🚀 Sending payload with session context:", payload)
 
     const xhr: XMLHttpRequest = new XMLHttpRequest()
 

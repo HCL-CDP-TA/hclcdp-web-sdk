@@ -552,6 +552,23 @@ For React applications, use the React wrapper:
 - Safari 13+
 - Modern mobile browsers
 
+## Contributing
+
+We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+
+- **Commit Message Format**: This project uses [Conventional Commits](https://www.conventionalcommits.org/)
+- **Automated Validation**: Commit messages are validated locally and in CI/CD
+- **Release Process**: Automatic versioning and changelog generation via Release Please
+
+Quick reference for commit types:
+
+- `feat:` - New feature (minor version bump)
+- `fix:` - Bug fix (patch version bump)
+- `feat!:` or `BREAKING CHANGE:` - Breaking change (major version bump)
+- `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `build:`, `ci:`, `chore:`
+
+Example: `feat: add automatic session renewal`
+
 ## License
 
 This project is licensed under the MIT License.

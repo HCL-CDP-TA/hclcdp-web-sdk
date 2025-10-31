@@ -86,6 +86,16 @@ HclCdp.identify("user-123", {
 HclCdp.logout()
 ```
 
+## Automatic Session Renewal
+
+The SDK automatically manages session lifecycle and ensures that all events are tracked with valid sessions:
+
+- **Automatic Renewal**: If a session expires due to inactivity, the SDK automatically creates a new session when the next event (track, identify, page, etc.) is called
+- **No Lost Events**: Events are never sent with empty or invalid session IDs
+- **Seamless Experience**: Session renewal happens transparently without requiring any action from your code
+
+This means you don't need to worry about session expiration - just call your tracking methods as normal, and the SDK will ensure they're always associated with a valid session.
+
 ## Session End Callbacks
 
 You can listen for session ending events by providing callback functions in the configuration:

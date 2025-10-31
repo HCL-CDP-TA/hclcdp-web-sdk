@@ -192,15 +192,35 @@ export class SessionManager {
     })
   }
 
+  // Ensures a valid session exists, creating a new one if expired
+  private ensureValidSession(): void {
+    const sessionData = this.getSessionData()
+
+    // If no session data exists or session is expired, create new session
+    if (!sessionData || !this.isSessionValid(sessionData)) {
+      if (sessionData) {
+        console.log("⏰ Session expired, creating new session for this event")
+      }
+      this.startNewSession()
+    } else if (!this.deviceSessionId || !this.userSessionId) {
+      // Session data exists in storage but not in memory (shouldn't happen, but safety check)
+      this.deviceSessionId = sessionData.deviceSessionId
+      this.userSessionId = sessionData.userSessionId
+    }
+  }
+
   getSessionId(): string | null {
+    this.ensureValidSession()
     return this.deviceSessionId // For backward compatibility, return device session
   }
 
   getDeviceSessionId(): string | null {
+    this.ensureValidSession()
     return this.deviceSessionId
   }
 
   getUserSessionId(): string | null {
+    this.ensureValidSession()
     return this.userSessionId
   }
 

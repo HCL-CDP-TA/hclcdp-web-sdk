@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.1...v1.1.2) (2025-10-31)
+
+
+### Bug Fixes
+
+* create new session when one expires through inactivity ([a429737](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/a4297378818ecd80292870a6f3f17c87cfc64024))
+
 ## [1.1.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.0...v1.1.1) (2025-09-15)
 
 

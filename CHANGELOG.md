@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.2...v1.2.0) (2025-11-05)
+
+
+### Features
+
+* added location tracking ([843e508](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/843e50826373991aea64211d6aa93789842cd8a4))
+
 ## [1.1.2](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.1...v1.1.2) (2025-10-31)
 
 

@@ -94,6 +94,12 @@ export class CdpClient {
 
     // Collect common tracking cookies and store them
     this.collectCommonCookies()
+
+    // Always attempt to capture geolocation if browser permission is already granted
+    // NOTE: Location is captured once at initialization and cached for all events.
+    // This may be changed in future versions to support dynamic location updates.
+    // SDK will never prompt for permission - only uses location if already granted.
+    await this.captureGeolocation()
   }
 
   public updateConfig(configUpdates: Partial<HclCdpConfig>): void {
@@ -108,8 +114,13 @@ export class CdpClient {
     utmParams?: Record<string, any>,
     otherIds?: Record<string, any>,
   ): Promise<void> => {
-    if (this.context && utmParams) {
-      this.context.utm = utmParams
+    // Only set utm if there are actual UTM parameters, otherwise remove it
+    if (this.context) {
+      if (utmParams && Object.keys(utmParams).length > 0) {
+        this.context.utm = utmParams
+      } else {
+        delete this.context.utm
+      }
     }
 
     const contextWithSession: EventContext = this.context
@@ -422,5 +433,70 @@ export class CdpClient {
 
   public refreshCommonCookies = (): void => {
     this.collectCommonCookies()
+  }
+
+  /**
+   * Captures geolocation if browser has already granted permission.
+   * Uses the Permissions API to check first, only calls getCurrentPosition if already granted.
+   * Location is captured once at initialization and stored in context for all subsequent events.
+   *
+   * NOTE: This captures location once at init. Future versions may support dynamic updates
+   * or per-event location capture based on use case requirements.
+   */
+  private captureGeolocation = async (): Promise<void> => {
+    // Check if browser supports geolocation
+    if (!navigator.geolocation) {
+      console.log("🌍 Geolocation not supported by browser")
+      return
+    }
+
+    try {
+      // Check if Permissions API is supported
+      if (navigator.permissions && navigator.permissions.query) {
+        const permissionStatus = await navigator.permissions.query({ name: "geolocation" as PermissionName })
+
+        if (permissionStatus.state === "granted") {
+          console.log("🌍 Geolocation permission already granted, capturing location...")
+          await this.getCurrentLocation()
+        } else {
+          console.log(`🌍 Geolocation permission not granted (${permissionStatus.state}), skipping location capture`)
+        }
+      } else {
+        // Fallback: If Permissions API not supported, we cannot safely check without potentially prompting
+        // So we skip location capture to respect the "do not ask for permission" requirement
+        console.log("🌍 Permissions API not supported, skipping location capture to avoid prompting user")
+      }
+    } catch (error) {
+      console.log("🌍 Error checking geolocation permission:", error)
+    }
+  }
+
+  /**
+   * Gets current position and stores in context
+   */
+  private getCurrentLocation = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          if (this.context) {
+            this.context.geolocation = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+            }
+            console.log("🌍 Geolocation captured:", this.context.geolocation)
+          }
+          resolve()
+        },
+        error => {
+          console.log("🌍 Error getting current position:", error.message)
+          reject(error)
+        },
+        {
+          timeout: 10000,
+          maximumAge: 0,
+        },
+      )
+    })
   }
 }

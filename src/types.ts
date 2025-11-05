@@ -115,6 +115,11 @@ export interface EventContext {
   utm?: {
     [key: string]: string
   }
+  geolocation?: {
+    latitude: number
+    longitude: number
+    accuracy: number
+  }
 }
 
 export interface DestinationConfig {

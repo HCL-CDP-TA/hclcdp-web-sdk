@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.2.0...v1.2.1) (2025-11-06)
+
+
+### Bug Fixes
+
+* moved deviceId to under context.userAgent ([bfed02a](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/bfed02adc014aa7d5d841c365f7318521df25491))
+* removed deviceType at the top level in the payload ([bda1a90](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/bda1a90fac45a043ccea175e901a19659ecf562e))
+
 ## [1.2.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.2...v1.2.0) (2025-11-05)
 
 

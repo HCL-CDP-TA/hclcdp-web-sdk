@@ -81,7 +81,7 @@ export interface EventPayload {
   originalTimestamp: number
   messageId: string
   writeKey: string
-  deviceType: string
+  // deviceType removed from top level; use context.userAgent.deviceType
   context: EventContext
   properties?: Record<string, any>
   customerProperties?: Record<string, any>

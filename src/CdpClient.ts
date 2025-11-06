@@ -147,7 +147,6 @@ export class CdpClient {
       id: this.profileId, // Profile ID as main identifier
       deviceId: this.deviceId,
       userId: this.userId || "",
-      deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
@@ -201,7 +200,6 @@ export class CdpClient {
       id: this.profileId, // Profile ID as main identifier
       deviceId: this.deviceId,
       userId: this.userId || "",
-      deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",
@@ -248,7 +246,6 @@ export class CdpClient {
       userId: userId,
       id: this.profileId, // Profile ID as main identifier
       deviceId: this.deviceId,
-      deviceType: this.context?.userAgent.deviceType || "Unknown",
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",

@@ -79,6 +79,7 @@ export class CdpClient {
         version: packageJson.version,
       },
       userAgent: {
+        deviceId: this.deviceId,
         deviceType: agent.device.type || "Desktop",
         osType: agent.os.name || "",
         osVersion: agent.os.version || "",
@@ -133,7 +134,7 @@ export class CdpClient {
         }
       : {
           library: { name: "", type: "" },
-          userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+          userAgent: { deviceId: this.deviceId, deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
           session: {
             deviceSessionId,
             userSessionId,
@@ -145,7 +146,6 @@ export class CdpClient {
       event: "page_view",
       name: pageName,
       id: this.profileId, // Profile ID as main identifier
-      deviceId: this.deviceId,
       userId: this.userId || "",
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
@@ -187,7 +187,7 @@ export class CdpClient {
         }
       : {
           library: { name: "", type: "" },
-          userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+          userAgent: { deviceId: this.deviceId, deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
           session: {
             deviceSessionId,
             userSessionId,
@@ -198,7 +198,6 @@ export class CdpClient {
       type: "track",
       event: eventName,
       id: this.profileId, // Profile ID as main identifier
-      deviceId: this.deviceId,
       userId: this.userId || "",
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
@@ -233,7 +232,7 @@ export class CdpClient {
         }
       : {
           library: { name: "", type: "" },
-          userAgent: { deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
+          userAgent: { deviceId: this.deviceId, deviceType: "", osType: "", osVersion: "", browser: "", ua: "" },
           session: {
             deviceSessionId,
             userSessionId,
@@ -245,7 +244,6 @@ export class CdpClient {
       event: "identify_event",
       userId: userId,
       id: this.profileId, // Profile ID as main identifier
-      deviceId: this.deviceId,
       originalTimestamp: Date.now(),
       messageId: uuidv4(),
       writeKey: this.config.writeKey || "",

@@ -77,7 +77,7 @@ export interface EventPayload {
   name?: string
   userId: string
   id: string // This will be the profileId
-  deviceId: string
+  // deviceId removed from top level; use context.userAgent.deviceId
   originalTimestamp: number
   messageId: string
   writeKey: string
@@ -95,6 +95,7 @@ export interface EventContext {
     version?: string
   }
   userAgent: {
+    deviceId: string
     deviceType: string
     osType: string
     osVersion: string

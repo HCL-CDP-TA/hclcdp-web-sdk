@@ -68,11 +68,23 @@ export class HclCdp {
       )
 
       // Flush queued events AFTER session manager is ready
-      EventQueue.flushQueue(EventQueue.PAGE_QUEUE_KEY, HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient))
-      EventQueue.flushQueue(EventQueue.TRACK_QUEUE_KEY, HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient))
+      EventQueue.flushQueue(
+        EventQueue.PAGE_QUEUE_KEY,
+        HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient),
+        HclCdp.getDeviceSessionId,
+        HclCdp.getUserSessionId,
+      )
+      EventQueue.flushQueue(
+        EventQueue.TRACK_QUEUE_KEY,
+        HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient),
+        HclCdp.getDeviceSessionId,
+        HclCdp.getUserSessionId,
+      )
       EventQueue.flushQueue(
         EventQueue.IDENTIFY_QUEUE_KEY,
         HclCdp.instance.cdpClient.identify.bind(HclCdp.instance.cdpClient),
+        HclCdp.getDeviceSessionId,
+        HclCdp.getUserSessionId,
       )
 
       // Attach the instance to the window object
@@ -258,16 +270,28 @@ export class HclCdp {
     return HclCdp.instance?.sessionManager?.getFullSessionData() || null
   }
 
-  static getSessionId(): string | "" {
-    return HclCdp.instance?.sessionManager?.getSessionId() || ""
+  static getSessionId(): string {
+    if (!HclCdp.instance?.sessionManager) {
+      console.warn("⚠️ SessionManager not initialized yet")
+      return ""
+    }
+    return HclCdp.instance.sessionManager.getSessionId()
   }
 
-  static getDeviceSessionId(): string | "" {
-    return HclCdp.instance?.sessionManager?.getDeviceSessionId() || ""
+  static getDeviceSessionId(): string {
+    if (!HclCdp.instance?.sessionManager) {
+      console.warn("⚠️ SessionManager not initialized yet")
+      return ""
+    }
+    return HclCdp.instance.sessionManager.getDeviceSessionId()
   }
 
-  static getUserSessionId(): string | "" {
-    return HclCdp.instance?.sessionManager?.getUserSessionId() || ""
+  static getUserSessionId(): string {
+    if (!HclCdp.instance?.sessionManager) {
+      console.warn("⚠️ SessionManager not initialized yet")
+      return ""
+    }
+    return HclCdp.instance.sessionManager.getUserSessionId()
   }
 
   static setDeviceSessionLogging(enabled: boolean): void {
@@ -381,11 +405,23 @@ export class HclCdp {
     }
 
     try {
-      EventQueue.flushQueue(EventQueue.PAGE_QUEUE_KEY, HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient))
-      EventQueue.flushQueue(EventQueue.TRACK_QUEUE_KEY, HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient))
+      EventQueue.flushQueue(
+        EventQueue.PAGE_QUEUE_KEY,
+        HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient),
+        HclCdp.getDeviceSessionId,
+        HclCdp.getUserSessionId,
+      )
+      EventQueue.flushQueue(
+        EventQueue.TRACK_QUEUE_KEY,
+        HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient),
+        HclCdp.getDeviceSessionId,
+        HclCdp.getUserSessionId,
+      )
       EventQueue.flushQueue(
         EventQueue.IDENTIFY_QUEUE_KEY,
         HclCdp.instance.cdpClient.identify.bind(HclCdp.instance.cdpClient),
+        HclCdp.getDeviceSessionId,
+        HclCdp.getUserSessionId,
       )
       console.log("✅ Event queue flushed successfully")
     } catch (error) {

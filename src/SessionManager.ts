@@ -61,6 +61,8 @@ export class SessionManager {
     // Retrieve session data from localStorage
     const sessionData = this.getSessionData()
 
+    console.log("🔍 initializeSession - sessionData from storage:", sessionData)
+
     // Check if the session is still valid
     if (sessionData && this.isSessionValid(sessionData)) {
       this.deviceSessionId = sessionData.deviceSessionId
@@ -209,19 +211,31 @@ export class SessionManager {
     }
   }
 
-  getSessionId(): string | null {
+  getSessionId(): string {
     this.ensureValidSession()
-    return this.deviceSessionId // For backward compatibility, return device session
+    if (!this.deviceSessionId) {
+      console.error("❌ DeviceSessionId is null after ensureValidSession - this should not happen")
+      this.startNewSession()
+    }
+    return this.deviceSessionId || ""
   }
 
-  getDeviceSessionId(): string | null {
+  getDeviceSessionId(): string {
     this.ensureValidSession()
-    return this.deviceSessionId
+    if (!this.deviceSessionId) {
+      console.error("❌ DeviceSessionId is null after ensureValidSession - this should not happen")
+      this.startNewSession()
+    }
+    return this.deviceSessionId || ""
   }
 
-  getUserSessionId(): string | null {
+  getUserSessionId(): string {
     this.ensureValidSession()
-    return this.userSessionId
+    if (!this.userSessionId) {
+      console.error("❌ UserSessionId is null after ensureValidSession - this should not happen")
+      this.startNewSession()
+    }
+    return this.userSessionId || ""
   }
 
   // Get full session data including timestamps

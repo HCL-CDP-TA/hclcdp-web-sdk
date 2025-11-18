@@ -18,38 +18,35 @@ class EventQueue {
     localStorage.removeItem(queueKey)
   }
 
-  static flushQueue(queueKey: string, method: Function): void {
+  static flushQueue(
+    queueKey: string,
+    method: Function,
+    getDeviceSessionId: () => string,
+    getUserSessionId: () => string,
+  ): void {
     const queue = this.getQueue(queueKey)
     queue.forEach(payload => {
       try {
+        // Get current session IDs instead of using stale queued values
+        const deviceSessionId = getDeviceSessionId()
+        const userSessionId = getUserSessionId()
+
         switch (queueKey) {
           case EventQueue.PAGE_QUEUE_KEY:
             method(
               payload.pageName,
-              payload.deviceSessionId || "",
-              payload.userSessionId || "",
+              deviceSessionId,
+              userSessionId,
               payload.properties,
               payload.utmParams,
               payload.otherIds,
             )
             break
           case EventQueue.TRACK_QUEUE_KEY:
-            method(
-              payload.eventName,
-              payload.deviceSessionId || "",
-              payload.userSessionId || "",
-              payload.properties,
-              payload.otherIds,
-            )
+            method(payload.eventName, deviceSessionId, userSessionId, payload.properties, payload.otherIds)
             break
           case EventQueue.IDENTIFY_QUEUE_KEY:
-            method(
-              payload.userId,
-              payload.deviceSessionId || "",
-              payload.userSessionId || "",
-              payload.properties,
-              payload.otherIds,
-            )
+            method(payload.userId, deviceSessionId, userSessionId, payload.properties, payload.otherIds)
             break
         }
       } catch (error) {

@@ -233,6 +233,27 @@ Clear user identity and start a new user session (device session continues).
 HclCdp.logout()
 ```
 
+#### `HclCdp.flushQueue()`
+
+Force flush all queued events immediately. This is useful in scenarios where you want to ensure all events are sent before a critical action, such as page navigation or application shutdown.
+
+**Note:** Events are automatically queued before SDK initialization and flushed once `init()` completes. This method is only needed in special cases where you want to manually trigger queue processing.
+
+```javascript
+// Example: Flush queue before page unload
+window.addEventListener("beforeunload", () => {
+  HclCdp.flushQueue()
+})
+
+// Example: Ensure events are sent before navigation
+function navigateAway() {
+  HclCdp.flushQueue()
+  window.location.href = "/checkout"
+}
+```
+
+**Important:** This method only works if the SDK is initialized. If called before initialization, it will log a warning and have no effect.
+
 ### When to Use identify() vs login()
 
 **Use `identify()` when:**

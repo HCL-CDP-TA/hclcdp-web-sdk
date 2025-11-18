@@ -366,4 +366,29 @@ export class HclCdp {
       HclCdp.instance.cdpClient.refreshCommonCookies()
     }
   }
+
+  /**
+   * Force flush all queued events.
+   * This will attempt to send all queued page, track, and identify events immediately.
+   * Useful for scenarios like page unload where you want to ensure events are sent.
+   * Note: Only works if SDK is initialized. Queued events are automatically flushed on init.
+   */
+  static flushQueue = (): void => {
+    if (!HclCdp.instance?.cdpClient) {
+      console.warn("Cannot flush queue: SDK not initialized")
+      return
+    }
+
+    try {
+      EventQueue.flushQueue(EventQueue.PAGE_QUEUE_KEY, HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient))
+      EventQueue.flushQueue(EventQueue.TRACK_QUEUE_KEY, HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient))
+      EventQueue.flushQueue(
+        EventQueue.IDENTIFY_QUEUE_KEY,
+        HclCdp.instance.cdpClient.identify.bind(HclCdp.instance.cdpClient),
+      )
+      console.log("✅ Event queue flushed successfully")
+    } catch (error) {
+      console.error("❌ Error flushing event queue:", error)
+    }
+  }
 }

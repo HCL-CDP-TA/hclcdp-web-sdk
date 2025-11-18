@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.2.0...v1.3.0) (2025-11-18)
+
+
+### Features
+
+* added public flushqueue method ([8e673bb](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/8e673bb96f097e358a6d57e62bf996eba077c42b))
+
+
+### Bug Fixes
+
+* initialize SessionManager before flushing event queue to prevent blank session IDs ([3563b33](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/3563b33d61eea1728638cb3aa8b67cc97a600fab))
+* moved deviceId to under context.userAgent ([bfed02a](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/bfed02adc014aa7d5d841c365f7318521df25491))
+* removed deviceType at the top level in the payload ([bda1a90](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/bda1a90fac45a043ccea175e901a19659ecf562e))
+
 ## [1.2.0](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.1.2...v1.2.0) (2025-11-05)
 
 

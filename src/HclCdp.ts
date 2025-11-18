@@ -57,21 +57,22 @@ export class HclCdp {
     await HclCdp.instance.cdpClient.init(config)
 
     try {
-      // Flush queued events
-      EventQueue.flushQueue(EventQueue.PAGE_QUEUE_KEY, HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient))
-      EventQueue.flushQueue(EventQueue.TRACK_QUEUE_KEY, HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient))
-      EventQueue.flushQueue(
-        EventQueue.IDENTIFY_QUEUE_KEY,
-        HclCdp.instance.cdpClient.identify.bind(HclCdp.instance.cdpClient),
-      )
-
-      // Initialize session manager AFTER everything else is ready
+      // Initialize session manager BEFORE flushing queued events
+      // This ensures session IDs are available when queued events are sent
       HclCdp.instance.sessionManager = new SessionManager(
         config,
         HclCdp.onDeviceSessionStart,
         HclCdp.onDeviceSessionEnd,
         HclCdp.onUserSessionStart,
         HclCdp.onUserSessionEnd,
+      )
+
+      // Flush queued events AFTER session manager is ready
+      EventQueue.flushQueue(EventQueue.PAGE_QUEUE_KEY, HclCdp.instance.cdpClient.page.bind(HclCdp.instance.cdpClient))
+      EventQueue.flushQueue(EventQueue.TRACK_QUEUE_KEY, HclCdp.instance.cdpClient.track.bind(HclCdp.instance.cdpClient))
+      EventQueue.flushQueue(
+        EventQueue.IDENTIFY_QUEUE_KEY,
+        HclCdp.instance.cdpClient.identify.bind(HclCdp.instance.cdpClient),
       )
 
       // Attach the instance to the window object

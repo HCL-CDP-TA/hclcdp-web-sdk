@@ -1,5 +1,5 @@
 {
-  "exclude": ["node_modules", "dist"],
+  "exclude": ["node_modules", "dist", "release.sh"],
   "include": ["src", "global.d.ts"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */

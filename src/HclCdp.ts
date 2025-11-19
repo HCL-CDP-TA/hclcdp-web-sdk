@@ -163,9 +163,7 @@ export class HclCdp {
   }
 
   static page = async (pageName: string, properties?: Record<string, any>, otherIds?: Record<string, any>) => {
-    const payload = {
-      deviceSessionId: this.getDeviceSessionId(),
-      userSessionId: this.getUserSessionId(),
+    const eventDescriptor = {
       pageName,
       properties: {
         ...properties,
@@ -179,13 +177,12 @@ export class HclCdp {
     }
 
     this.destinations.forEach(destination => {
-      destination.instance.page({ event: pageName, properties: payload.properties })
+      destination.instance.page({ event: pageName, properties: eventDescriptor.properties })
     })
 
     if (!HclCdp.instance || !HclCdp.instance.cdpClient) {
-      // If the SDK is not initialized, queue the event
-      console.log("adding to queue")
-      EventQueue.addToQueue(EventQueue.PAGE_QUEUE_KEY, payload)
+      // If the SDK is not initialized, queue the event descriptor (no session IDs)
+      EventQueue.addToQueue(EventQueue.PAGE_QUEUE_KEY, eventDescriptor)
       return
     }
 
@@ -196,7 +193,7 @@ export class HclCdp {
       pageName,
       this.getDeviceSessionId(),
       this.getUserSessionId(),
-      payload.properties,
+      eventDescriptor.properties,
       utmParams,
       otherIds,
     )
@@ -206,16 +203,14 @@ export class HclCdp {
     this.destinations.forEach(destination => {
       destination.instance.track({ event: eventName, properties })
     })
-    const payload = {
-      deviceSessionId: this.getDeviceSessionId(),
-      userSessionId: this.getUserSessionId(),
+    const eventDescriptor = {
       eventName,
       properties,
       otherIds,
     }
     if (!HclCdp.instance || !HclCdp.instance.cdpClient) {
-      // If the SDK is not initialized, queue the event
-      EventQueue.addToQueue(EventQueue.TRACK_QUEUE_KEY, payload)
+      // If the SDK is not initialized, queue the event descriptor (no session IDs)
+      EventQueue.addToQueue(EventQueue.TRACK_QUEUE_KEY, eventDescriptor)
       return
     }
 
@@ -227,17 +222,15 @@ export class HclCdp {
     this.destinations.forEach(destination => {
       destination.instance.identify({ properties })
     })
-    const payload = {
-      deviceSessionId: this.getDeviceSessionId(),
-      userSessionId: this.getUserSessionId(),
+    const eventDescriptor = {
       userId,
       properties,
       otherIds,
     }
 
     if (!HclCdp.instance || !HclCdp.instance.cdpClient) {
-      // If the SDK is not initialized, queue the event
-      EventQueue.addToQueue(EventQueue.IDENTIFY_QUEUE_KEY, payload)
+      // If the SDK is not initialized, queue the event descriptor (no session IDs)
+      EventQueue.addToQueue(EventQueue.IDENTIFY_QUEUE_KEY, eventDescriptor)
       return
     }
 
@@ -272,7 +265,7 @@ export class HclCdp {
 
   static getSessionId(): string {
     if (!HclCdp.instance?.sessionManager) {
-      console.warn("⚠️ SessionManager not initialized yet")
+      // console.warn("⚠️ SessionManager not initialized yet")
       return ""
     }
     return HclCdp.instance.sessionManager.getSessionId()
@@ -280,7 +273,7 @@ export class HclCdp {
 
   static getDeviceSessionId(): string {
     if (!HclCdp.instance?.sessionManager) {
-      console.warn("⚠️ SessionManager not initialized yet")
+      // console.warn("⚠️ SessionManager not initialized yet")
       return ""
     }
     return HclCdp.instance.sessionManager.getDeviceSessionId()
@@ -288,7 +281,7 @@ export class HclCdp {
 
   static getUserSessionId(): string {
     if (!HclCdp.instance?.sessionManager) {
-      console.warn("⚠️ SessionManager not initialized yet")
+      // console.warn("⚠️ SessionManager not initialized yet")
       return ""
     }
     return HclCdp.instance.sessionManager.getUserSessionId()

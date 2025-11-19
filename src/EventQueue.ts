@@ -25,28 +25,40 @@ class EventQueue {
     getUserSessionId: () => string,
   ): void {
     const queue = this.getQueue(queueKey)
-    queue.forEach(payload => {
+    queue.forEach(eventDescriptor => {
       try {
-        // Get current session IDs instead of using stale queued values
+        // Get current session IDs at send time
         const deviceSessionId = getDeviceSessionId()
         const userSessionId = getUserSessionId()
 
         switch (queueKey) {
           case EventQueue.PAGE_QUEUE_KEY:
             method(
-              payload.pageName,
+              eventDescriptor.pageName,
               deviceSessionId,
               userSessionId,
-              payload.properties,
-              payload.utmParams,
-              payload.otherIds,
+              eventDescriptor.properties,
+              eventDescriptor.utmParams,
+              eventDescriptor.otherIds,
             )
             break
           case EventQueue.TRACK_QUEUE_KEY:
-            method(payload.eventName, deviceSessionId, userSessionId, payload.properties, payload.otherIds)
+            method(
+              eventDescriptor.eventName,
+              deviceSessionId,
+              userSessionId,
+              eventDescriptor.properties,
+              eventDescriptor.otherIds,
+            )
             break
           case EventQueue.IDENTIFY_QUEUE_KEY:
-            method(payload.userId, deviceSessionId, userSessionId, payload.properties, payload.otherIds)
+            method(
+              eventDescriptor.userId,
+              deviceSessionId,
+              userSessionId,
+              eventDescriptor.properties,
+              eventDescriptor.otherIds,
+            )
             break
         }
       } catch (error) {

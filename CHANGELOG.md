@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.3.1...v1.3.2) (2025-11-19)
+
+
+### Bug Fixes
+
+* queuein g issue ([ae04d96](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/commit/ae04d9659200dcec33b366c6d2e9e57308d0f5d2))
+
 ## [1.3.1](https://github.com/HCL-CDP-TA/hclcdp-web-sdk/compare/v1.3.0...v1.3.1) (2025-11-18)
 
 
